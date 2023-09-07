@@ -1,22 +1,13 @@
 import "./style.css";
 import * as THREE from "three";
 
-let sizes = {};
+// let sizes = {};
+// let camera;
+// let renderer;
 
 window.onload = function () {
-  sizes = {
-    width: window.innerWidth,
-    height: window.innerHeight,
-  };
-
-  window.addEventListener("resize", () => {
-    sizes.width = window.innerWidth;
-    sizes.height = window.innerHeight;
-    drawSphere();
-  });
+  drawSphere();
 };
-
-drawSphere();
 
 function drawSphere() {
   const sizes = {
@@ -48,7 +39,21 @@ function drawSphere() {
   const renderer = new THREE.WebGLRenderer({ canvas });
   renderer.setSize(sizes.width, sizes.height);
   renderer.render(scene, camera);
-  console.log("Hello Three.js");
+
+  window.addEventListener("resize", () => {
+    sizes.width = window.innerWidth;
+    sizes.height = window.innerHeight;
+    camera.updateProjectionMatrix();
+    camera.aspect = sizes.width / sizes.height;
+    renderer.setSize(sizes.width, sizes.height); // drawSphere();
+  });
+
+  const loop = () => {
+    renderer.render(scene, camera);
+    window.requestAnimationFrame(loop);
+  };
+
+  loop();
 }
 
 function drawThreeBezierCurve2D() {
