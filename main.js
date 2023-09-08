@@ -1,5 +1,7 @@
 import "./style.css";
 import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 // let sizes = {};
 // let camera;
@@ -15,16 +17,56 @@ function drawSphere() {
     height: window.innerHeight,
   };
 
+  let sphereRadius = 2;
+  let sphereWidthSegments = 64;
+  let sphereHeightSegments = 64;
+
   const scene = new THREE.Scene();
-  const geometry = new THREE.SphereGeometry(3, 64, 64);
-  const material = new THREE.MeshStandardMaterial({ color: "#ff0000" });
+  const geometrySphere = new THREE.SphereGeometry(
+    sphereRadius,
+    sphereWidthSegments,
+    sphereHeightSegments
+  );
 
-  const mesh = new THREE.Mesh(geometry, material);
-  scene.add(mesh);
+  const materialRed = new THREE.MeshStandardMaterial({ color: "#ff0000" });
+  const materialGreen = new THREE.MeshStandardMaterial({ color: "#00ff00" });
+  const materialBlue = new THREE.MeshStandardMaterial({ color: "#0000ff" });
 
-  const light = new THREE.PointLight("#ffffff", 200);
-  light.position.set(0, 10, 10);
-  scene.add(light);
+  const meshSphere01 = new THREE.Mesh(geometrySphere, materialRed);
+  meshSphere01.position.x = 0;
+  meshSphere01.position.y = 0;
+  meshSphere01.position.z = 0;
+  scene.add(meshSphere01);
+
+  const meshSphere02 = new THREE.Mesh(geometrySphere, materialGreen);
+  meshSphere02.position.x = 6;
+  meshSphere02.position.y = 0;
+  meshSphere02.position.z = 0;
+  scene.add(meshSphere02);
+
+  const meshSphere03 = new THREE.Mesh(geometrySphere, materialBlue);
+  meshSphere03.position.x = -6;
+  meshSphere03.position.y = 0;
+  meshSphere03.position.z = 0;
+  scene.add(meshSphere03);
+
+  const lightPoint = new THREE.PointLight("#ffffff", 200);
+  lightPoint.position.set(0, 0, 10);
+  scene.add(lightPoint);
+
+  // const lightDirectional = new THREE.DirectionalLight("#ffffff", 0.9);
+  // lightDirectional.position.set(10, 10, 10);
+  // scene.add(lightDirectional);
+
+  // const lightSpot = new THREE.SpotLight("#ffffff", 0.9, 10, Math.PI * 0.25);
+  // lightSpot.position.set(0, 2, 3);
+  // scene.add(lightSpot);
+
+  const lightAmbient = new THREE.AmbientLight("#ffffff", 0.2);
+  scene.add(lightAmbient);
+
+  // const lightHemisphere = new THREE.HemisphereLight("#ffffff", "#000000", 2);
+  // scene.add(lightHemisphere);
 
   const camera = new THREE.PerspectiveCamera(
     45,
@@ -36,6 +78,11 @@ function drawSphere() {
   scene.add(camera);
 
   const canvas = document.querySelector(".webgl");
+  const controls = new OrbitControls(camera, canvas);
+  controls.enableDamping = true;
+  controls.enablePan = false;
+  controls.enableZoom = false;
+
   const renderer = new THREE.WebGLRenderer({ canvas });
   renderer.setSize(sizes.width, sizes.height);
   renderer.render(scene, camera);
@@ -48,12 +95,13 @@ function drawSphere() {
     renderer.setSize(sizes.width, sizes.height); // drawSphere();
   });
 
-  const loop = () => {
+  const renderLoop = () => {
+    controls.update();
     renderer.render(scene, camera);
-    window.requestAnimationFrame(loop);
+    window.requestAnimationFrame(renderLoop);
   };
 
-  loop();
+  renderLoop();
 }
 
 function drawThreeBezierCurve2D() {
