@@ -8,10 +8,10 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 // let renderer;
 
 window.onload = function () {
-  drawSphere();
+  drawSpheres();
 };
 
-function drawSphere() {
+function drawSpheres() {
   const sizes = {
     width: window.innerWidth,
     height: window.innerHeight,
@@ -82,6 +82,8 @@ function drawSphere() {
   controls.enableDamping = true;
   controls.enablePan = false;
   controls.enableZoom = false;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 5;
 
   const renderer = new THREE.WebGLRenderer({ canvas });
   renderer.setSize(sizes.width, sizes.height);
