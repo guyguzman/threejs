@@ -39,20 +39,52 @@ function drawSpheres() {
     roughness: roughness,
   });
   const materialBlue = new THREE.MeshStandardMaterial({
-    color: "#0000ff",
+    color: "#ffff00",
     roughness: roughness,
   });
 
+  let rosaryOriginX = 0;
+  let anchorTopY = 10;
+  let anchorBottomY = -1;
+  let rateTop = 2;
+  let base = 0.5;
   let curveAPoints = [15, 0, 0, 0, 15, 0, 30, 15, 0, 18, 0, 0];
   let curveBPoints = [15, 0, 0, 15, -2, 0, 18, -2, 0, 18, 0, 0];
-  curveAPoints = [15, 0, 0, 10, 10, 0, 21, 10, 0, 16, 0, 0];
-  curveBPoints = [15, 0, 0, 15.5, -1, 0, 15.5, -1, 0, 16, 0, 0];
+  curveAPoints = [
+    rosaryOriginX - base,
+    0,
+    0,
+    rosaryOriginX - anchorTopY / rateTop,
+    anchorTopY,
+    0,
+    rosaryOriginX + anchorTopY / rateTop,
+    anchorTopY,
+    0,
+    rosaryOriginX + base,
+    0,
+    0,
+  ];
+  curveBPoints = [
+    rosaryOriginX - base,
+    0,
+    0,
+    rosaryOriginX,
+    anchorBottomY,
+    0,
+    rosaryOriginX,
+    anchorBottomY,
+    0,
+    rosaryOriginX + base,
+    0,
+    0,
+  ];
 
   let bezierCurveA = drawCubicBezierCurve3D(curveAPoints);
   let bezierCurveB = drawCubicBezierCurve3D(curveBPoints);
 
   const points = bezierCurveA.getPoints(50);
   const spacedPoints = bezierCurveA.getSpacedPoints(50);
+  console.log(spacedPoints);
 
   let bezierCurveMeshA = new THREE.Mesh(
     curveGeometry(bezierCurveA),
@@ -71,7 +103,7 @@ function drawSpheres() {
   meshSphere01.position.x = 0;
   meshSphere01.position.y = 0;
   meshSphere01.position.z = 0;
-  scene.add(meshSphere01);
+  // scene.add(meshSphere01);
 
   const meshSphere02 = new THREE.Mesh(geometrySphere, materialGreen);
   meshSphere02.position.x = 6;
@@ -157,7 +189,7 @@ function curveMaterial() {
 
 function curveGeometry(bezierCurve) {
   let tubularSegments = 128;
-  let tubularRadius = 0.05;
+  let tubularRadius = 0.1;
   let tubularRadialSegments = 16;
   let tubularClosed = false;
   let bezierCurveGeometry = new THREE.TubeGeometry(
