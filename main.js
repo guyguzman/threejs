@@ -43,24 +43,29 @@ function drawSpheres() {
     roughness: roughness,
   });
 
-  let curvePoints = [15, 0, 0, 0, 15, 0, 30, 15, 0, 15, 0, 0];
-  let bezierCurve = drawCubicBezierCurve3D(curvePoints);
-  const bezierCurveGeometry = new THREE.TubeGeometry(
-    bezierCurve,
-    100,
-    0.5,
-    4,
-    false
+  let curveAPoints = [15, 0, 0, 0, 15, 0, 30, 15, 0, 18, 0, 0];
+  let curveBPoints = [15, 0, 0, 15, -2, 0, 18, -2, 0, 18, 0, 0];
+  curveAPoints = [15, 0, 0, 10, 10, 0, 21, 10, 0, 16, 0, 0];
+  curveBPoints = [15, 0, 0, 15.5, -1, 0, 15.5, -1, 0, 16, 0, 0];
+
+  let bezierCurveA = drawCubicBezierCurve3D(curveAPoints);
+  let bezierCurveB = drawCubicBezierCurve3D(curveBPoints);
+
+  const points = bezierCurveA.getPoints(50);
+  const spacedPoints = bezierCurveA.getSpacedPoints(50);
+
+  let bezierCurveMeshA = new THREE.Mesh(
+    curveGeometry(bezierCurveA),
+    curveMaterial()
   );
-  const bezierCurveMaterial = new THREE.MeshStandardMaterial({
-    color: "#ff0000",
-    roughness: roughness,
-  });
-  let bezierCurveMesh = new THREE.Mesh(
-    bezierCurveGeometry,
-    bezierCurveMaterial
+
+  let bezierCurveMeshB = new THREE.Mesh(
+    curveGeometry(bezierCurveB),
+    curveMaterial()
   );
-  scene.add(bezierCurveMesh);
+
+  scene.add(bezierCurveMeshA);
+  scene.add(bezierCurveMeshB);
 
   const meshSphere01 = new THREE.Mesh(geometrySphere, materialRed);
   meshSphere01.position.x = 0;
@@ -140,30 +145,29 @@ function drawSpheres() {
   renderLoop();
 }
 
-function createHeartShape() {
-  const heartShape = new THREE.Shape();
+function curveMaterial() {
+  let roughness = 0.5;
+  let bezierCurveMaterial = new THREE.MeshStandardMaterial({
+    color: "#ff0000",
+    roughness: roughness,
+  });
 
-  heartShape.moveTo(25, 25);
-  heartShape.bezierCurveTo(25, 25, 20, 0, 0, 0);
-  heartShape.bezierCurveTo(-30, 0, -30, 35, -30, 35);
-  heartShape.bezierCurveTo(-30, 55, -10, 77, 25, 95);
-  heartShape.bezierCurveTo(60, 77, 80, 55, 80, 35);
-  heartShape.bezierCurveTo(80, 35, 80, 0, 50, 0);
-  heartShape.bezierCurveTo(35, 0, 25, 25, 25, 25);
+  return bezierCurveMaterial;
+}
 
-  const extrudeSettings = {
-    depth: 8,
-    bevelEnabled: true,
-    bevelSegments: 2,
-    steps: 2,
-    bevelSize: 1,
-    bevelThickness: 1,
-  };
-
-  const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
-
-  const mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial());
-  return mesh;
+function curveGeometry(bezierCurve) {
+  let tubularSegments = 128;
+  let tubularRadius = 0.05;
+  let tubularRadialSegments = 16;
+  let tubularClosed = false;
+  let bezierCurveGeometry = new THREE.TubeGeometry(
+    bezierCurve,
+    tubularSegments,
+    tubularRadius,
+    tubularRadialSegments,
+    tubularClosed
+  );
+  return bezierCurveGeometry;
 }
 
 function drawCubicBezierCurve2D() {
@@ -194,17 +198,6 @@ function drawCubicBezierCurve3D(curvePoints) {
     new THREE.Vector3(curvePoints[6], curvePoints[7], curvePoints[8]),
     new THREE.Vector3(curvePoints[9], curvePoints[10], curvePoints[11])
   );
-
-  const points = curveCubic.getPoints(50);
-  const spacedPoints = curveCubic.getSpacedPoints(50);
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  const material = new THREE.LineBasicMaterial({
-    color: 0xffff00,
-    linewidth: 100,
-  });
-
-  const curveObject = new THREE.Line(geometry, material);
-  console.log(spacedPoints);
   return curveCubic;
 }
 
