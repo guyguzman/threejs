@@ -96,14 +96,14 @@ function drawSpheres() {
     curveMaterial()
   );
 
-  scene.add(bezierCurveMeshA);
-  scene.add(bezierCurveMeshB);
+  // scene.add(bezierCurveMeshA);
+  // scene.add(bezierCurveMeshB);
 
   const meshSphere01 = new THREE.Mesh(geometrySphere, materialRed);
   meshSphere01.position.x = 0;
   meshSphere01.position.y = 0;
   meshSphere01.position.z = 0;
-  // scene.add(meshSphere01);
+  scene.add(meshSphere01);
 
   const meshSphere02 = new THREE.Mesh(geometrySphere, materialGreen);
   meshSphere02.position.x = 6;
@@ -142,7 +142,7 @@ function drawSpheres() {
 
   const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
   camera.position.x = 0;
-  camera.position.y = 0;
+  camera.position.y = 20;
   camera.position.z = 40;
 
   scene.add(camera);
