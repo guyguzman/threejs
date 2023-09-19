@@ -55,14 +55,21 @@ function createRosary() {
   //scene.add(gridHelper);
   let radius = 0.04;
   insertLine(scene, radius);
-  let spacedPoints = insertRosaryLoopTop(scene, radius);
+  let spacedPointsCount = 110;
+  let spacedPoints = insertRosaryLoopTop(scene, radius, spacedPointsCount);
   let spacePoint = 4;
   insertRosaryLoopBottom(scene, radius);
   // insertBackgroundImage(scene);
   simplePath(scene);
+  let beads = 0;
   for (let index = 2; index < spacedPoints.length - 2; index = index + 2) {
+    beads = beads + 1;
+    let color = "a0a2a5";
+    if (beads % 11 == 0) {
+      color = "#00ff00";
+    }
     insertSphere(
-      "#a0a2a5",
+      color,
       0.1,
       spacedPoints[index].x,
       spacedPoints[index].y,
@@ -70,8 +77,9 @@ function createRosary() {
       scene
     );
   }
+  console.log(beads);
 
-  console.log(spacedPoints);
+  // console.log(spacedPoints);
   // insertSphere("#0000ff", -6, 0, 0, scene);
   insertLights(scene);
 
@@ -249,7 +257,7 @@ function insertSphere(color, radius, x, y, z, scene) {
   return meshSphere;
 }
 
-function insertRosaryLoopTop(scene, radius) {
+function insertRosaryLoopTop(scene, radius, spacedPointsCount) {
   let color = "#ff0000";
   let roughness = 0.5;
   let rosaryOriginX = 0;
@@ -275,8 +283,8 @@ function insertRosaryLoopTop(scene, radius) {
 
   let bezierCurve = drawCubicBezierCurve3D(curvePoints);
 
-  const points = bezierCurve.getPoints(50);
-  const spacedPoints = bezierCurve.getSpacedPoints(50);
+  const points = bezierCurve.getPoints(spacedPointsCount);
+  const spacedPoints = bezierCurve.getSpacedPoints(spacedPointsCount);
 
   let curveMesh = new THREE.Mesh(
     tubeGeometry(bezierCurve, radius),
