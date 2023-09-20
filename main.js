@@ -18,55 +18,29 @@ let scene;
 
 window.onload = function () {
   createRosary();
-  window.addEventListener("mousemove", onPointerMove);
-  // window.addEventListener("click", onPointerMove);
+  //window.addEventListener("mousemove", onPointerMove);
+  window.addEventListener("click", selectBead);
 };
 
-function selectBead() {
+function selectBead(event) {
+  pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+  pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(pointer, camera);
   const intersects = raycaster.intersectObjects(scene.children);
-  console.log(intersects);
+  console.log(pointer.x, pointer.y);
+  console.log(intersects[0].object.name);
+  const bead = scene.getObjectByName(intersects[0].object.name);
+  const color = scene.getObjectByName(intersects[0].object.name).material.color;
+  console.log(bead, color);
+  bead.material.color.set("#00ff00");
 }
 
 function onPointerMove(event) {
-  // calculate pointer position in normalized device coordinates
-  // (-1 to +1) for both components
+  //Normalizes x and y coordinates to be between -1 and 1
 
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
   console.log(pointer.x, pointer.y);
-}
-
-function simplePath(scene) {}
-
-function catmullRomCurve3(scene) {
-  const curve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-10, 0, 10),
-    new THREE.Vector3(-5, 5, 5),
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(5, -5, 5),
-    new THREE.Vector3(10, 0, 10),
-  ]);
-
-  const points = curve.getPoints(50);
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-  const curveObject = new THREE.Line(geometry, material);
-  scene.add(curveObject);
-}
-function testBezierCurve(scene) {
-  const curve = new THREE.CubicBezierCurve3(
-    new THREE.Vector3(-10, 0, 10),
-    new THREE.Vector3(-5, 5, 5),
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(5, -5, 5)
-  );
-
-  const points = curve.getPoints(50);
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-  const curveObject = new THREE.Line(geometry, material);
-  scene.add(curveObject);
 }
 
 function createRosary() {
@@ -79,7 +53,7 @@ function createRosary() {
 
   let spacedPoints = insertRosaryLoopTop(scene, chainRadius, spacedPointsCount);
   insertRosaryLoopBottom(scene, chainRadius);
-  simplePath(scene);
+  //simplePath(scene);
   insertBeads(spacedPoints, scene);
   insertLine(scene, chainRadius);
   insertLights(scene);
@@ -108,13 +82,150 @@ function createRosary() {
 
   const renderLoop = () => {
     controls.update();
-    selectBead();
+    //selectBead();
     renderer.render(scene, camera);
     window.requestAnimationFrame(renderLoop);
   };
 
-  selectBead();
+  //selectBead();
   renderLoop();
+}
+
+function addCamera(scene) {
+  let width = window.innerWidth;
+  let height = window.innerHeight;
+  let fov = 45;
+  let aspect = width / height;
+  let near = 0.1;
+  let far = 400;
+
+  camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+
+  camera.position.x = 4;
+  camera.position.y = 4;
+  camera.position.z = 4;
+
+  scene.add(camera);
+  return camera;
+}
+
+function insertLights(scene) {
+  const lightPoint = new THREE.PointLight("#ffffff", 1200);
+  lightPoint.position.set(0, 0, 30);
+  scene.add(lightPoint);
+
+  const lightDirectional = new THREE.DirectionalLight("#ffffff", 0.9);
+  lightDirectional.position.set(10, 10, 10);
+  // scene.add(lightDirectional);
+
+  const lightSpot = new THREE.SpotLight("#ffffff", 0.9, 10, Math.PI * 0.25);
+  lightSpot.position.set(0, 2, 3);
+  // scene.add(lightSpot);
+
+  const lightHemisphere = new THREE.HemisphereLight("#ffffff", "#000000", 2);
+  // scene.add(lightHemisphere);
+
+  const lightAmbient = new THREE.AmbientLight("#ffffff", 0.2);
+  scene.add(lightAmbient);
+}
+
+function insertSphere(color, beadRoughness, radius, x, y, z, scene) {
+  let sphereRadius = radius;
+  let sphereWidthSegments = 64;
+  let sphereHeightSegments = 64;
+
+  const geometrySphere = new THREE.SphereGeometry(
+    sphereRadius,
+    sphereWidthSegments,
+    sphereHeightSegments
+  );
+
+  const material = new THREE.MeshStandardMaterial({
+    color: color,
+    roughness: beadRoughness,
+  });
+
+  const meshSphere = new THREE.Mesh(geometrySphere, material);
+  meshSphere.position.x = x;
+  meshSphere.position.y = y;
+  meshSphere.position.z = z;
+
+  scene.add(meshSphere);
+  return meshSphere;
+}
+
+function insertRosaryLoopTop(scene, radius, spacedPointsCount) {
+  let rosaryOriginX = 0;
+  let anchorTopY = 10;
+  let anchorBottomY = -1;
+  let rateTop = 1;
+  let base = 0.5;
+
+  let curvePoints = [
+    rosaryOriginX - base,
+    0,
+    0,
+    rosaryOriginX - anchorTopY / rateTop,
+    anchorTopY,
+    0,
+    rosaryOriginX + anchorTopY / rateTop,
+    anchorTopY,
+    0,
+    rosaryOriginX + base,
+    0,
+    0,
+  ];
+
+  let bezierCurve = drawCubicBezierCurve3D(curvePoints);
+
+  const points = bezierCurve.getPoints(spacedPointsCount);
+  const spacedPoints = bezierCurve.getSpacedPoints(spacedPointsCount);
+
+  let curveMesh = new THREE.Mesh(
+    tubeGeometry(bezierCurve, chainRadius),
+    curveMaterial(chainColor, chainRoughness)
+  );
+
+  scene.add(curveMesh);
+  return spacedPoints;
+}
+
+function insertRosaryLoopBottom(scene, radius) {
+  let color = "#ff0000";
+  let roughness = 0.5;
+  let rosaryOriginX = 0;
+  let anchorTopY = 10;
+  let anchorBottomY = -0.5;
+  let rateTop = 2;
+  let base = 0.5;
+
+  let curvePoints = [
+    rosaryOriginX - base,
+    0,
+    0,
+    rosaryOriginX,
+    anchorBottomY,
+    0,
+    rosaryOriginX,
+    anchorBottomY,
+    0,
+    rosaryOriginX + base,
+    0,
+    0,
+  ];
+
+  let bezierCurve = drawCubicBezierCurve3D(curvePoints);
+
+  const points = bezierCurve.getPoints(50);
+  const spacedPoints = bezierCurve.getSpacedPoints(50);
+
+  let curveMesh = new THREE.Mesh(
+    tubeGeometry(bezierCurve, chainRadius),
+    curveMaterial(chainColor, chainRoughness)
+  );
+
+  scene.add(curveMesh);
+  return curveMesh;
 }
 
 function insertBeads(spacedPoints, scene) {
@@ -127,7 +238,7 @@ function insertBeads(spacedPoints, scene) {
       color = beadLargeColor;
       beadRadius = beadLargeRadius;
     }
-    insertSphere(
+    let meshSphere = insertSphere(
       color,
       beadRoughness,
       beadRadius,
@@ -136,9 +247,113 @@ function insertBeads(spacedPoints, scene) {
       spacedPoints[index].z,
       scene
     );
+    meshSphere.name = index;
   }
   console.log(beads);
 }
+
+function insertLine(scene, radius) {
+  let height = 5;
+  let x = 0;
+  let y = -2.87;
+  let z = 0;
+
+  const geometry = new THREE.CylinderGeometry(
+    chainRadius,
+    chainRadius,
+    height,
+    32
+  );
+  const material = new THREE.MeshStandardMaterial({
+    color: chainColor,
+    roughness: chainRoughness,
+  });
+  const cylinder = new THREE.Mesh(geometry, material);
+  cylinder.position.x = x;
+  cylinder.position.y = y;
+  cylinder.position.z = z;
+  scene.add(cylinder);
+
+  return cylinder;
+}
+
+function curveMaterial(color, roughness) {
+  let bezierCurveMaterial = new THREE.MeshStandardMaterial({
+    color: color,
+    roughness: roughness,
+  });
+
+  return bezierCurveMaterial;
+}
+
+function tubeGeometry(curve, radius) {
+  let tubularSegments = 128;
+  let tubularRadius = radius;
+  let tubularRadialSegments = 16;
+  let tubularClosed = false;
+  let tubeGeometry = new THREE.TubeGeometry(
+    curve,
+    tubularSegments,
+    tubularRadius,
+    tubularRadialSegments,
+    tubularClosed
+  );
+  return tubeGeometry;
+}
+
+function drawCubicBezierCurve3D(curvePoints) {
+  const curveCubic = new THREE.CubicBezierCurve3(
+    new THREE.Vector3(curvePoints[0], curvePoints[1], curvePoints[2]),
+    new THREE.Vector3(curvePoints[3], curvePoints[4], curvePoints[5]),
+    new THREE.Vector3(curvePoints[6], curvePoints[7], curvePoints[8]),
+    new THREE.Vector3(curvePoints[9], curvePoints[10], curvePoints[11])
+  );
+  return curveCubic;
+}
+
+function drawCubicBezierCurve2D() {
+  const curveCubic = new THREE.CubicBezierCurve(
+    new THREE.Vector2(-10, 0),
+    new THREE.Vector2(-5, 15),
+    new THREE.Vector2(20, 15),
+    new THREE.Vector2(10, 0)
+  );
+  const points = curveCubic.getPoints(50);
+  const spacedPoints = curveCubic.getSpacedPoints(50);
+  console.log(spacedPoints);
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const material = new THREE.LineBasicMaterial({
+    color: 0x00ff00,
+    linewidth: 100,
+  });
+
+  // Create the final object to add to the scene
+  const curveObject = new THREE.Line(geometry, material);
+  return curveObject;
+}
+
+function drawQuadraticBezierCurve2D() {
+  const curveQuadratic = new THREE.QuadraticBezierCurve(
+    new THREE.Vector2(0, 921),
+    new THREE.Vector2(921, 921),
+    new THREE.Vector2(921, 0)
+  );
+
+  const spacedPoints = curveCubic.getSpacedPoints(50);
+  console.log(spacedPoints);
+}
+
+function drawQuadraticBezierCurve3D() {
+  const curveQuadratic = new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(0, 921, 0),
+    new THREE.Vector3(921, 921, 0),
+    new THREE.Vector3(921, 0, 0)
+  );
+
+  const spacedPoints = curveCubic.getSpacedPoints(50);
+  console.log(spacedPoints);
+}
+
 function insertBackgroundImage(scene) {
   let size = 2;
   const geometry = new THREE.PlaneGeometry(size, size);
@@ -219,243 +434,34 @@ function insertBackgroundGradient(scene) {
   planeMesh.z = 2;
   scene.add(planeMesh);
 }
-function addCamera(scene) {
-  let width = window.innerWidth;
-  let height = window.innerHeight;
-  let fov = 45;
-  let aspect = width / height;
-  let near = 0.1;
-  let far = 400;
 
-  camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+function catmullRomCurve3(scene) {
+  const curve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-10, 0, 10),
+    new THREE.Vector3(-5, 5, 5),
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(5, -5, 5),
+    new THREE.Vector3(10, 0, 10),
+  ]);
 
-  camera.position.x = 4;
-  camera.position.y = 4;
-  camera.position.z = 4;
-
-  scene.add(camera);
-  return camera;
-}
-
-function insertLights(scene) {
-  const lightPoint = new THREE.PointLight("#ffffff", 1200);
-  lightPoint.position.set(0, 0, 30);
-  scene.add(lightPoint);
-
-  const lightDirectional = new THREE.DirectionalLight("#ffffff", 0.9);
-  lightDirectional.position.set(10, 10, 10);
-  // scene.add(lightDirectional);
-
-  const lightSpot = new THREE.SpotLight("#ffffff", 0.9, 10, Math.PI * 0.25);
-  lightSpot.position.set(0, 2, 3);
-  // scene.add(lightSpot);
-
-  const lightHemisphere = new THREE.HemisphereLight("#ffffff", "#000000", 2);
-  // scene.add(lightHemisphere);
-
-  const lightAmbient = new THREE.AmbientLight("#ffffff", 0.2);
-  scene.add(lightAmbient);
-}
-
-function insertSphere(color, beadRoughness, radius, x, y, z, scene) {
-  let sphereRadius = radius;
-  let sphereWidthSegments = 64;
-  let sphereHeightSegments = 64;
-
-  const geometrySphere = new THREE.SphereGeometry(
-    sphereRadius,
-    sphereWidthSegments,
-    sphereHeightSegments
-  );
-
-  const material = new THREE.MeshStandardMaterial({
-    color: color,
-    roughness: beadRoughness,
-  });
-
-  const meshSphere = new THREE.Mesh(geometrySphere, material);
-  meshSphere.position.x = x;
-  meshSphere.position.y = y;
-  meshSphere.position.z = z;
-
-  scene.add(meshSphere);
-  return meshSphere;
-}
-
-function insertRosaryLoopTop(scene, radius, spacedPointsCount) {
-  let color = "#ff0000";
-  let roughness = 0.5;
-  let rosaryOriginX = 0;
-  let anchorTopY = 10;
-  let anchorBottomY = -1;
-  let rateTop = 1;
-  let base = 0.5;
-
-  let curvePoints = [
-    rosaryOriginX - base,
-    0,
-    0,
-    rosaryOriginX - anchorTopY / rateTop,
-    anchorTopY,
-    0,
-    rosaryOriginX + anchorTopY / rateTop,
-    anchorTopY,
-    0,
-    rosaryOriginX + base,
-    0,
-    0,
-  ];
-
-  let bezierCurve = drawCubicBezierCurve3D(curvePoints);
-
-  const points = bezierCurve.getPoints(spacedPointsCount);
-  const spacedPoints = bezierCurve.getSpacedPoints(spacedPointsCount);
-
-  let curveMesh = new THREE.Mesh(
-    tubeGeometry(bezierCurve, chainRadius),
-    curveMaterial(chainColor, chainRoughness)
-  );
-
-  scene.add(curveMesh);
-  return spacedPoints;
-}
-
-function insertRosaryLoopBottom(scene, radius) {
-  let color = "#ff0000";
-  let roughness = 0.5;
-  let rosaryOriginX = 0;
-  let anchorTopY = 10;
-  let anchorBottomY = -0.5;
-  let rateTop = 2;
-  let base = 0.5;
-
-  let curvePoints = [
-    rosaryOriginX - base,
-    0,
-    0,
-    rosaryOriginX,
-    anchorBottomY,
-    0,
-    rosaryOriginX,
-    anchorBottomY,
-    0,
-    rosaryOriginX + base,
-    0,
-    0,
-  ];
-
-  let bezierCurve = drawCubicBezierCurve3D(curvePoints);
-
-  const points = bezierCurve.getPoints(50);
-  const spacedPoints = bezierCurve.getSpacedPoints(50);
-
-  let curveMesh = new THREE.Mesh(
-    tubeGeometry(bezierCurve, chainRadius),
-    curveMaterial(chainColor, chainRoughness)
-  );
-
-  scene.add(curveMesh);
-  return curveMesh;
-}
-
-function insertLine(scene, radius) {
-  let height = 5;
-  let x = 0;
-  let y = -2.87;
-  let z = 0;
-
-  const geometry = new THREE.CylinderGeometry(
-    chainRadius,
-    chainRadius,
-    height,
-    32
-  );
-  const material = new THREE.MeshStandardMaterial({
-    color: chainColor,
-    roughness: chainRoughness,
-  });
-  const cylinder = new THREE.Mesh(geometry, material);
-  cylinder.position.x = x;
-  cylinder.position.y = y;
-  cylinder.position.z = z;
-  scene.add(cylinder);
-
-  return cylinder;
-}
-
-function curveMaterial(color, roughness) {
-  let bezierCurveMaterial = new THREE.MeshStandardMaterial({
-    color: color,
-    roughness: roughness,
-  });
-
-  return bezierCurveMaterial;
-}
-
-function tubeGeometry(curve, radius) {
-  let tubularSegments = 128;
-  let tubularRadius = radius;
-  let tubularRadialSegments = 16;
-  let tubularClosed = false;
-  let tubeGeometry = new THREE.TubeGeometry(
-    curve,
-    tubularSegments,
-    tubularRadius,
-    tubularRadialSegments,
-    tubularClosed
-  );
-  return tubeGeometry;
-}
-
-function drawCubicBezierCurve2D() {
-  const curveCubic = new THREE.CubicBezierCurve(
-    new THREE.Vector2(-10, 0),
-    new THREE.Vector2(-5, 15),
-    new THREE.Vector2(20, 15),
-    new THREE.Vector2(10, 0)
-  );
-  const points = curveCubic.getPoints(50);
-  const spacedPoints = curveCubic.getSpacedPoints(50);
-  console.log(spacedPoints);
+  const points = curve.getPoints(50);
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  const material = new THREE.LineBasicMaterial({
-    color: 0x00ff00,
-    linewidth: 100,
-  });
-
-  // Create the final object to add to the scene
+  const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
   const curveObject = new THREE.Line(geometry, material);
-  return curveObject;
+  scene.add(curveObject);
 }
 
-function drawCubicBezierCurve3D(curvePoints) {
-  const curveCubic = new THREE.CubicBezierCurve3(
-    new THREE.Vector3(curvePoints[0], curvePoints[1], curvePoints[2]),
-    new THREE.Vector3(curvePoints[3], curvePoints[4], curvePoints[5]),
-    new THREE.Vector3(curvePoints[6], curvePoints[7], curvePoints[8]),
-    new THREE.Vector3(curvePoints[9], curvePoints[10], curvePoints[11])
-  );
-  return curveCubic;
-}
-
-function drawQuadraticBezierCurve2D() {
-  const curveQuadratic = new THREE.QuadraticBezierCurve(
-    new THREE.Vector2(0, 921),
-    new THREE.Vector2(921, 921),
-    new THREE.Vector2(921, 0)
+function testBezierCurve(scene) {
+  const curve = new THREE.CubicBezierCurve3(
+    new THREE.Vector3(-10, 0, 10),
+    new THREE.Vector3(-5, 5, 5),
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(5, -5, 5)
   );
 
-  const spacedPoints = curveCubic.getSpacedPoints(50);
-  console.log(spacedPoints);
-}
-
-function drawQuadraticBezierCurve3D() {
-  const curveQuadratic = new THREE.QuadraticBezierCurve3(
-    new THREE.Vector3(0, 921, 0),
-    new THREE.Vector3(921, 921, 0),
-    new THREE.Vector3(921, 0, 0)
-  );
-
-  const spacedPoints = curveCubic.getSpacedPoints(50);
-  console.log(spacedPoints);
+  const points = curve.getPoints(50);
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+  const curveObject = new THREE.Line(geometry, material);
+  scene.add(curveObject);
 }
