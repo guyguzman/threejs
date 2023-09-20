@@ -3,9 +3,14 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-// let sizes = {};
-// let camera;
-// let renderer;
+let beadSmallRadius = 0.1;
+let beadLargeRadius = 0.15;
+let beadRoughness = 0.5;
+let chainRoughness = 0;
+let chainRadius = 0.04;
+let chainColor = "#606060";
+let beadSmallColor = "#f0f2f5";
+let beadLargeColor = "#00ff00";
 
 window.onload = function () {
   createRosary();
@@ -24,10 +29,7 @@ function catmullRomCurve3(scene) {
 
   const points = curve.getPoints(50);
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
   const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-
-  // Create the final object to add to the scene
   const curveObject = new THREE.Line(geometry, material);
   scene.add(curveObject);
 }
@@ -41,54 +43,33 @@ function testBezierCurve(scene) {
 
   const points = curve.getPoints(50);
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
   const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-
-  // Create the final object to add to the scene
   const curveObject = new THREE.Line(geometry, material);
   scene.add(curveObject);
 }
 
 function createRosary() {
+  let enableGrid = true;
   const scene = new THREE.Scene();
-  let gridHelper = new THREE.GridHelper(10, 10, 0x00ff00, 0x4a4a4a);
-  //scene.add(gridHelper);
-  let radius = 0.04;
-  insertLine(scene, radius);
-  let spacedPointsCount = 110;
-  let spacedPoints = insertRosaryLoopTop(scene, radius, spacedPointsCount);
-  let spacePoint = 4;
-  insertRosaryLoopBottom(scene, radius);
-  // insertBackgroundImage(scene);
-  simplePath(scene);
-  let beads = 0;
-  for (let index = 2; index < spacedPoints.length - 2; index = index + 2) {
-    beads = beads + 1;
-    let color = "a0a2a5";
-    if (beads % 11 == 0) {
-      color = "#00ff00";
-    }
-    insertSphere(
-      color,
-      0.1,
-      spacedPoints[index].x,
-      spacedPoints[index].y,
-      spacedPoints[index].z,
-      scene
-    );
-  }
-  console.log(beads);
+  if (enableGrid) scene.add(new THREE.GridHelper(10, 10, 0x00ff00, 0x4a4a4a));
 
-  // console.log(spacedPoints);
-  // insertSphere("#0000ff", -6, 0, 0, scene);
+  let chainRadius = 0.04;
+  let spacedPointsCount = 110;
+
+  let spacedPoints = insertRosaryLoopTop(scene, chainRadius, spacedPointsCount);
+  insertRosaryLoopBottom(scene, chainRadius);
+  simplePath(scene);
+  insertBeads(spacedPoints, scene);
+  insertLine(scene, chainRadius);
   insertLights(scene);
+  // insertBackgroundImage(scene);
 
   let camera = addCamera(scene);
 
   const canvas = document.querySelector(".webgl");
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
-  controls.enablePan = false;
+  controls.enablePan = true;
   controls.enableZoom = true;
   controls.autoRotate = false;
   controls.autoRotateSpeed = 5;
@@ -113,6 +94,28 @@ function createRosary() {
   renderLoop();
 }
 
+function insertBeads(spacedPoints, scene) {
+  let beads = 0;
+  for (let index = 2; index < spacedPoints.length - 2; index = index + 2) {
+    beads = beads + 1;
+    let beadRadius = beadSmallRadius;
+    let color = beadSmallColor;
+    if (beads % 11 == 0) {
+      color = beadLargeColor;
+      beadRadius = beadLargeRadius;
+    }
+    insertSphere(
+      color,
+      beadRoughness,
+      beadRadius,
+      spacedPoints[index].x,
+      spacedPoints[index].y,
+      spacedPoints[index].z,
+      scene
+    );
+  }
+  console.log(beads);
+}
 function insertBackgroundImage(scene) {
   let size = 2;
   const geometry = new THREE.PlaneGeometry(size, size);
@@ -231,11 +234,10 @@ function insertLights(scene) {
   scene.add(lightAmbient);
 }
 
-function insertSphere(color, radius, x, y, z, scene) {
+function insertSphere(color, beadRoughness, radius, x, y, z, scene) {
   let sphereRadius = radius;
   let sphereWidthSegments = 64;
   let sphereHeightSegments = 64;
-  let roughness = 0.5;
 
   const geometrySphere = new THREE.SphereGeometry(
     sphereRadius,
@@ -245,7 +247,7 @@ function insertSphere(color, radius, x, y, z, scene) {
 
   const material = new THREE.MeshStandardMaterial({
     color: color,
-    roughness: roughness,
+    roughness: beadRoughness,
   });
 
   const meshSphere = new THREE.Mesh(geometrySphere, material);
@@ -287,8 +289,8 @@ function insertRosaryLoopTop(scene, radius, spacedPointsCount) {
   const spacedPoints = bezierCurve.getSpacedPoints(spacedPointsCount);
 
   let curveMesh = new THREE.Mesh(
-    tubeGeometry(bezierCurve, radius),
-    curveMaterial(color, roughness)
+    tubeGeometry(bezierCurve, chainRadius),
+    curveMaterial(chainColor, chainRoughness)
   );
 
   scene.add(curveMesh);
@@ -325,8 +327,8 @@ function insertRosaryLoopBottom(scene, radius) {
   const spacedPoints = bezierCurve.getSpacedPoints(50);
 
   let curveMesh = new THREE.Mesh(
-    tubeGeometry(bezierCurve, radius),
-    curveMaterial(color, roughness)
+    tubeGeometry(bezierCurve, chainRadius),
+    curveMaterial(chainColor, chainRoughness)
   );
 
   scene.add(curveMesh);
@@ -334,34 +336,28 @@ function insertRosaryLoopBottom(scene, radius) {
 }
 
 function insertLine(scene, radius) {
-  const material = new THREE.LineBasicMaterial({
-    color: 0xff0000,
-  });
-
-  const points = [];
-  points.push(new THREE.Vector3(0, 0, 0));
-  points.push(new THREE.Vector3(0, -5, 0));
-
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  const line = new THREE.Line(geometry, material);
-  // let curveMesh = new THREE.Mesh(tubeGeometry(line), material());
-
-  // scene.add(line);
-
   let height = 5;
   let x = 0;
   let y = -2.87;
   let z = 0;
 
-  const geometry1 = new THREE.CylinderGeometry(radius, radius, height, 32);
-  const material1 = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-  const cylinder1 = new THREE.Mesh(geometry1, material1);
-  cylinder1.position.x = x;
-  cylinder1.position.y = y;
-  cylinder1.position.z = z;
-  scene.add(cylinder1);
+  const geometry = new THREE.CylinderGeometry(
+    chainRadius,
+    chainRadius,
+    height,
+    32
+  );
+  const material = new THREE.MeshStandardMaterial({
+    color: chainColor,
+    roughness: chainRoughness,
+  });
+  const cylinder = new THREE.Mesh(geometry, material);
+  cylinder.position.x = x;
+  cylinder.position.y = y;
+  cylinder.position.z = z;
+  scene.add(cylinder);
 
-  return line;
+  return cylinder;
 }
 
 function curveMaterial(color, roughness) {
