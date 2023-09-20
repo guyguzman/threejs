@@ -10,11 +10,32 @@ let chainRoughness = 0;
 let chainRadius = 0.04;
 let chainColor = "#606060";
 let beadSmallColor = "#f0f2f5";
-let beadLargeColor = "#00ff00";
+let beadLargeColor = "#ff0000";
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let camera;
+let scene;
 
 window.onload = function () {
   createRosary();
+  window.addEventListener("mousemove", onPointerMove);
+  // window.addEventListener("click", onPointerMove);
 };
+
+function selectBead() {
+  raycaster.setFromCamera(pointer, camera);
+  const intersects = raycaster.intersectObjects(scene.children);
+  console.log(intersects);
+}
+
+function onPointerMove(event) {
+  // calculate pointer position in normalized device coordinates
+  // (-1 to +1) for both components
+
+  pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+  pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  console.log(pointer.x, pointer.y);
+}
 
 function simplePath(scene) {}
 
@@ -49,8 +70,8 @@ function testBezierCurve(scene) {
 }
 
 function createRosary() {
-  let enableGrid = true;
-  const scene = new THREE.Scene();
+  let enableGrid = false;
+  scene = new THREE.Scene();
   if (enableGrid) scene.add(new THREE.GridHelper(10, 10, 0x00ff00, 0x4a4a4a));
 
   let chainRadius = 0.04;
@@ -87,10 +108,12 @@ function createRosary() {
 
   const renderLoop = () => {
     controls.update();
+    selectBead();
     renderer.render(scene, camera);
     window.requestAnimationFrame(renderLoop);
   };
 
+  selectBead();
   renderLoop();
 }
 
@@ -204,7 +227,7 @@ function addCamera(scene) {
   let near = 0.1;
   let far = 400;
 
-  const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+  camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 
   camera.position.x = 4;
   camera.position.y = 4;
