@@ -16,6 +16,8 @@ const pointer = new THREE.Vector2();
 let camera;
 let scene;
 
+let rosaryBeads = [];
+
 window.onload = function () {
   createRosary();
   //window.addEventListener("mousemove", onPointerMove);
