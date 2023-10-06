@@ -34,7 +34,7 @@ function selectBead(event) {
   const bead = scene.getObjectByName(intersects[0].object.name);
   const color = scene.getObjectByName(intersects[0].object.name).material.color;
   console.log(bead, color);
-  bead.material.color.set("#00ff00");
+  bead.material.color.set("#0000ff");
 }
 
 function onPointerMove(event) {
@@ -58,6 +58,7 @@ function createRosary() {
   //simplePath(scene);
   insertBeads(spacedPoints, scene);
   insertLine(scene, chainRadius);
+  insertLineBeads();
   insertLights(scene);
   // insertBackgroundImage(scene);
 
@@ -103,9 +104,9 @@ function addCamera(scene) {
 
   camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 
-  camera.position.x = 4;
-  camera.position.y = 4;
-  camera.position.z = 4;
+  camera.position.x = 2;
+  camera.position.y = 2;
+  camera.position.z = 2;
 
   scene.add(camera);
   return camera;
@@ -254,10 +255,33 @@ function insertBeads(spacedPoints, scene) {
   console.log(beads);
 }
 
+function insertLineBeads() {
+  for (let bead = 1; bead <= 5; bead++) {
+    let color;
+    let beadRadius;
+    if (bead == 1 || bead == 5) {
+      color = beadLargeColor;
+      beadRadius = beadLargeRadius;
+    } else {
+      color = beadSmallColor;
+      beadRadius = beadSmallRadius;
+    }
+    let meshSphere = insertSphere(
+      color,
+      beadRoughness,
+      beadRadius,
+      0,
+      -0.5 - bead * 0.5,
+      0,
+      scene
+    );
+  }
+}
+
 function insertLine(scene, radius) {
-  let height = 5;
+  let height = 2;
   let x = 0;
-  let y = -2.87;
+  let y = -1.375;
   let z = 0;
 
   const geometry = new THREE.CylinderGeometry(
