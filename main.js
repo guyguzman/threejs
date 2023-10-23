@@ -15,6 +15,8 @@ const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let camera;
 let scene;
+let controls;
+let controlsEnabled = true;
 
 let rosaryBeads = [];
 
@@ -65,12 +67,9 @@ function createRosary() {
   let camera = addCamera(scene);
 
   const canvas = document.querySelector(".webgl");
-  const controls = new OrbitControls(camera, canvas);
-  controls.enableDamping = true;
-  controls.enablePan = true;
-  controls.enableZoom = true;
-  controls.autoRotate = false;
-  controls.autoRotateSpeed = 5;
+
+  addOrbitControls(camera, canvas);
+  pointCamera(0, -2, 0);
 
   const renderer = new THREE.WebGLRenderer({ canvas });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -84,7 +83,7 @@ function createRosary() {
   });
 
   const renderLoop = () => {
-    controls.update();
+    if (controlsEnabled) controls.update();
     //selectBead();
     renderer.render(scene, camera);
     window.requestAnimationFrame(renderLoop);
@@ -97,19 +96,37 @@ function createRosary() {
 function addCamera(scene) {
   let width = window.innerWidth;
   let height = window.innerHeight;
-  let fov = 45;
+  let fov = 20;
   let aspect = width / height;
-  let near = 0.1;
+  let near = 0.05;
   let far = 400;
 
   camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 
-  camera.position.x = 2;
-  camera.position.y = 2;
-  camera.position.z = 2;
+  camera.position.x = 0;
+  camera.position.y = 0;
+  camera.position.z = 10;
 
   scene.add(camera);
   return camera;
+}
+
+function addOrbitControls(camera, canvas) {
+  if (controlsEnabled) {
+    controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.enablePan = true;
+    controls.enableZoom = true;
+    controls.autoRotate = false;
+    controls.autoRotateSpeed = 5;
+    controls.maxPolarAngle = Math.PI / 2;
+    controls.target = new THREE.Vector3(0, -2, 0);
+  }
+}
+
+function pointCamera(x, y, z) {
+  camera.lookAt(x, y, z);
+  console.log("camera", camera);
 }
 
 function insertLights(scene) {
@@ -279,9 +296,9 @@ function insertLineBeads() {
 }
 
 function insertLine(scene, radius) {
-  let height = 2;
+  let height = 3;
   let x = 0;
-  let y = -1.375;
+  let y = 0 - height / 2 - 0.375;
   let z = 0;
 
   const geometry = new THREE.CylinderGeometry(
