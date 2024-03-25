@@ -31,12 +31,15 @@ function selectBead(event) {
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(pointer, camera);
   const intersects = raycaster.intersectObjects(scene.children);
+  console.log(intersects);
   console.log(pointer.x, pointer.y);
   console.log(intersects[0].object.name);
+  console.log(scene);
   const bead = scene.getObjectByName(intersects[0].object.name);
+  console.log(bead);
   const color = scene.getObjectByName(intersects[0].object.name).material.color;
-  console.log(bead, color);
-  bead.material.color.set("#0000ff");
+  console.log(color);
+  bead.material.color.set("#00ff00");
 }
 
 function onPointerMove(event) {
@@ -55,14 +58,12 @@ function createRosary() {
   let chainRadius = 0.04;
   let spacedPointsCount = 110;
 
-  let spacedPoints = insertRosaryLoopTop(scene, chainRadius, spacedPointsCount);
-  insertRosaryLoopBottom(scene, chainRadius);
-  //simplePath(scene);
-  insertBeads(spacedPoints, scene);
+  let spacedPoints = insertLoopTop(scene, chainRadius, spacedPointsCount);
+  insertLoopBottom(scene, chainRadius);
+  insertLoopBeads(spacedPoints, scene);
   insertLine(scene, chainRadius);
-  insertLineBeads();
+  insertLineBeads(scene);
   insertLights(scene);
-  // insertBackgroundImage(scene);
 
   let camera = addCamera(scene);
 
@@ -174,7 +175,7 @@ function insertSphere(color, beadRoughness, radius, x, y, z, scene) {
   return meshSphere;
 }
 
-function insertRosaryLoopTop(scene, radius, spacedPointsCount) {
+function insertLoopTop(scene, radius, spacedPointsCount) {
   let rosaryOriginX = 0;
   let anchorTopY = 10;
   let anchorBottomY = -1;
@@ -210,7 +211,9 @@ function insertRosaryLoopTop(scene, radius, spacedPointsCount) {
   return spacedPoints;
 }
 
-function insertRosaryLoopBottom(scene, radius) {
+//Simple partial curve path for bottom part of loop (no beads)
+
+function insertLoopBottom(scene, radius) {
   let color = "#ff0000";
   let roughness = 0.5;
   let rosaryOriginX = 0;
@@ -248,7 +251,7 @@ function insertRosaryLoopBottom(scene, radius) {
   return curveMesh;
 }
 
-function insertBeads(spacedPoints, scene) {
+function insertLoopBeads(spacedPoints, scene) {
   let beads = 0;
   for (let index = 2; index < spacedPoints.length - 2; index = index + 2) {
     beads = beads + 1;
@@ -272,26 +275,27 @@ function insertBeads(spacedPoints, scene) {
   console.log(beads);
 }
 
-function insertLineBeads() {
-  for (let bead = 1; bead <= 5; bead++) {
-    let color;
+function insertLineBeads(scene) {
+  for (let beadIndex = 0; beadIndex < 5; beadIndex++) {
+    let beadColor;
     let beadRadius;
-    if (bead == 1 || bead == 5) {
-      color = beadLargeColor;
+    if (beadIndex == 0 || beadIndex == 4) {
+      beadColor = beadLargeColor;
       beadRadius = beadLargeRadius;
     } else {
-      color = beadSmallColor;
+      beadColor = beadSmallColor;
       beadRadius = beadSmallRadius;
     }
     let meshSphere = insertSphere(
-      color,
+      beadColor,
       beadRoughness,
       beadRadius,
       0,
-      -0.5 - bead * 0.5,
+      -0.5 - beadIndex * 0.5,
       0,
       scene
     );
+    meshSphere.name = beadIndex + 110;
   }
 }
 
