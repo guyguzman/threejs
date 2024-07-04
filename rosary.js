@@ -19,6 +19,7 @@ let controls;
 let controlsEnabled = true;
 
 let rosaryBeads = [];
+let itemIndex = 0;
 
 window.onload = function () {
   createRosary();
@@ -31,14 +32,8 @@ function selectBead(event) {
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(pointer, camera);
   const intersects = raycaster.intersectObjects(scene.children);
-  console.log(intersects);
-  console.log(pointer.x, pointer.y);
-  console.log(intersects[0].object.name);
-  console.log(scene);
   const bead = scene.getObjectByName(intersects[0].object.name);
-  console.log(bead);
   const color = scene.getObjectByName(intersects[0].object.name).material.color;
-  console.log(color);
   bead.material.color.set("#00ff00");
 }
 
@@ -252,12 +247,12 @@ function insertLoopBottom(scene, radius) {
 }
 
 function insertLoopBeads(spacedPoints, scene) {
-  let beads = 0;
+  let beadCount = 0;
   for (let index = 2; index < spacedPoints.length - 2; index = index + 2) {
-    beads = beads + 1;
+    beadCount = beadCount + 1;
     let beadRadius = beadSmallRadius;
     let color = beadSmallColor;
-    if (beads % 11 == 0) {
+    if (beadCount % 11 == 0) {
       color = beadLargeColor;
       beadRadius = beadLargeRadius;
     }
@@ -270,9 +265,11 @@ function insertLoopBeads(spacedPoints, scene) {
       spacedPoints[index].z,
       scene
     );
-    meshSphere.name = index;
+    itemIndex = index;
+    meshSphere.name = itemIndex;
+    console.log(itemIndex);
   }
-  console.log(beads);
+  console.log(beadCount);
 }
 
 function insertLineBeads(scene) {
@@ -295,7 +292,9 @@ function insertLineBeads(scene) {
       0,
       scene
     );
-    meshSphere.name = beadIndex + 110;
+    itemIndex = beadIndex + 1 + itemIndex;
+    meshSphere.name = itemIndex;
+    console.log(itemIndex);
   }
 }
 
