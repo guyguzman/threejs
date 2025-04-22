@@ -5,19 +5,21 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 let beadSmallRadius = 0.1;
 let beadLargeRadius = 0.15;
+let beadVeryLargeRadius = 0.25;
 let beadRoughness = 0.5;
 let chainRoughness = 0;
 let chainRadius = 0.04;
-let chainColor = "#606060";
+let chainColor = "#606265";
 let beadSmallColor = "#f0f2f5";
 let beadLargeColor = "#ff0000";
+let beadVeryLargeColor = beadSmallColor;
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let camera;
 let scene;
 let controls;
 let controlsEnabled = true;
-
+let clickedBead = null;
 let rosaryBeads = [];
 let itemIndex = 0;
 
@@ -25,6 +27,8 @@ window.onload = function () {
   createRosary();
   //window.addEventListener("mousemove", onPointerMove);
   window.addEventListener("click", selectBead);
+  console.dir(rosaryBeads);
+  // rosaryBeads[0].material.color.set("#0000ff");
 };
 
 function selectBead(event) {
@@ -33,6 +37,8 @@ function selectBead(event) {
   raycaster.setFromCamera(pointer, camera);
   const intersects = raycaster.intersectObjects(scene.children);
   const bead = scene.getObjectByName(intersects[0].object.name);
+  clickedBead = bead;
+  console.dir(bead);
   const color = scene.getObjectByName(intersects[0].object.name).material.color;
   bead.material.color.set("#00ff00");
 }
@@ -55,9 +61,9 @@ function createRosary() {
 
   let spacedPoints = insertLoopTop(scene, chainRadius, spacedPointsCount);
   insertLoopBottom(scene, chainRadius);
-  insertLoopBeads(spacedPoints, scene);
   insertLine(scene, chainRadius);
   insertLineBeads(scene);
+  insertLoopBeads(spacedPoints, scene);
   insertLights(scene);
 
   let camera = addCamera(scene);
@@ -251,13 +257,13 @@ function insertLoopBeads(spacedPoints, scene) {
   for (let index = 2; index < spacedPoints.length - 2; index = index + 2) {
     beadCount = beadCount + 1;
     let beadRadius = beadSmallRadius;
-    let color = beadSmallColor;
+    let beadColor = beadSmallColor;
     if (beadCount % 11 == 0) {
-      color = beadLargeColor;
+      beadColor = beadLargeColor;
       beadRadius = beadLargeRadius;
     }
     let meshSphere = insertSphere(
-      color,
+      beadColor,
       beadRoughness,
       beadRadius,
       spacedPoints[index].x,
@@ -267,39 +273,15 @@ function insertLoopBeads(spacedPoints, scene) {
     );
     itemIndex = index;
     meshSphere.name = itemIndex;
-    console.log(itemIndex);
-  }
-  console.log(beadCount);
-}
-
-function insertLineBeads(scene) {
-  for (let beadIndex = 0; beadIndex < 5; beadIndex++) {
-    let beadColor;
-    let beadRadius;
-    if (beadIndex == 0 || beadIndex == 4) {
-      beadColor = beadLargeColor;
-      beadRadius = beadLargeRadius;
-    } else {
-      beadColor = beadSmallColor;
-      beadRadius = beadSmallRadius;
-    }
-    let meshSphere = insertSphere(
-      beadColor,
-      beadRoughness,
-      beadRadius,
-      0,
-      -0.5 - beadIndex * 0.5,
-      0,
-      scene
+    console.log(
+      `loopBead - ${itemIndex}, color: ${beadColor}, beadRadius: ${beadRadius}, beadCount: ${beadCount}`
     );
-    itemIndex = beadIndex + 1 + itemIndex;
-    meshSphere.name = itemIndex;
-    console.log(itemIndex);
+    rosaryBeads.push(meshSphere);
   }
 }
 
 function insertLine(scene, radius) {
-  let height = 3;
+  let height = 3.5;
   let x = 0;
   let y = 0 - height / 2 - 0.375;
   let z = 0;
@@ -321,6 +303,49 @@ function insertLine(scene, radius) {
   scene.add(cylinder);
 
   return cylinder;
+}
+
+function insertLineBeads(scene) {
+  let beadCount = 0;
+  let y = 0;
+  for (let beadIndex = 0; beadIndex < 6; beadIndex++) {
+    beadCount = beadCount + 1;
+    let beadColor;
+    let beadRadius;
+    if (beadIndex == 1 || beadIndex == 5) {
+      beadColor = beadLargeColor;
+      beadRadius = beadLargeRadius;
+    } else if (beadIndex > 0) {
+      beadColor = beadSmallColor;
+      beadRadius = beadSmallRadius;
+    } else if (beadIndex == 0) {
+      beadColor = beadVeryLargeColor;
+      console.log(`beadVeryLargeColor: ${beadVeryLargeColor}`);
+      beadRadius = beadVeryLargeRadius;
+    }
+
+    if (beadIndex == 0) {
+      y = -0.35 - beadIndex * 0.5;
+    } else {
+      y = -0.35 - beadIndex * 0.5 - 0.25;
+    }
+
+    let meshSphere = insertSphere(
+      beadColor,
+      beadRoughness,
+      beadRadius,
+      0,
+      y,
+      0,
+      scene
+    );
+    itemIndex = beadIndex + 1 + itemIndex;
+    meshSphere.name = itemIndex;
+    console.log(
+      `loopBead - ${itemIndex}, color: ${beadColor}, beadRadius: ${beadRadius}, beadCount: ${beadCount}`
+    );
+    rosaryBeads.push(meshSphere);
+  }
 }
 
 function curveMaterial(color, roughness) {
