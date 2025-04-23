@@ -2,6 +2,7 @@ import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { createBrownCross } from "./brownCross.js";
 
 let beadSmallRadius = 0.1;
 let beadLargeRadius = 0.15;
@@ -64,6 +65,10 @@ function createRosary() {
   insertLine(scene, chainRadius);
   insertLineBeads(scene);
   insertLoopBeads(spacedPoints, scene);
+
+  const myCross = createBrownCross();
+  scene.add(myCross);
+
   insertLights(scene);
 
   let camera = addCamera(scene);
@@ -346,6 +351,108 @@ function insertLineBeads(scene) {
     );
     rosaryBeads.push(meshSphere);
   }
+}
+
+function createCrucifix(options = {}) {
+  const height = options.height !== undefined ? options.height : 10;
+  const beamWidth = options.beamWidth !== undefined ? options.beamWidth : 0.5;
+  const crossMaterial =
+    options.crossMaterial instanceof THREE.Material
+      ? options.crossMaterial
+      : new THREE.MeshStandardMaterial({
+          color: 0x8b4513,
+          roughness: 0.8,
+          metalness: 0.1,
+        });
+  const corpusMaterial =
+    options.corpusMaterial instanceof THREE.Material
+      ? options.corpusMaterial
+      : new THREE.MeshStandardMaterial({
+          color: 0xd3d3d3,
+          roughness: 0.7,
+          metalness: 0.2,
+        });
+  const addCorpus = options.addCorpus !== undefined ? options.addCorpus : true;
+
+  const verticalBeamHeight = height;
+  const horizontalBeamWidth = height * 0.6;
+  const horizontalBeamPosition = verticalBeamHeight * 0.3;
+
+  const crucifixGroup = new THREE.Group();
+
+  const verticalGeo = new THREE.BoxGeometry(
+    beamWidth,
+    verticalBeamHeight,
+    beamWidth
+  );
+  const verticalMesh = new THREE.Mesh(verticalGeo, crossMaterial);
+  verticalMesh.position.y = verticalBeamHeight / 2;
+  crucifixGroup.add(verticalMesh);
+
+  const horizontalGeo = new THREE.BoxGeometry(
+    horizontalBeamWidth,
+    beamWidth,
+    beamWidth
+  );
+  const horizontalMesh = new THREE.Mesh(horizontalGeo, crossMaterial);
+  horizontalMesh.position.y = verticalBeamHeight - horizontalBeamPosition;
+  horizontalMesh.position.z = beamWidth / 2;
+  crucifixGroup.add(horizontalMesh);
+
+  if (addCorpus) {
+    const corpusGroup = new THREE.Group();
+    const corpusDepthOffset = beamWidth;
+
+    const torsoHeight = height * 0.35;
+    const torsoWidth = height * 0.1;
+    const torsoDepth = height * 0.08;
+    const torsoGeo = new THREE.BoxGeometry(torsoWidth, torsoHeight, torsoDepth);
+    const torsoMesh = new THREE.Mesh(torsoGeo, corpusMaterial);
+    torsoMesh.position.y = horizontalMesh.position.y - torsoHeight * 0.1;
+    torsoMesh.position.z = corpusDepthOffset + torsoDepth / 2;
+    corpusGroup.add(torsoMesh);
+
+    const headRadius = height * 0.06;
+    const headGeo = new THREE.SphereGeometry(headRadius, 16, 8);
+    const headMesh = new THREE.Mesh(headGeo, corpusMaterial);
+    headMesh.position.y =
+      torsoMesh.position.y + torsoHeight / 2 + headRadius * 0.8;
+    headMesh.position.z = corpusDepthOffset + headRadius / 2;
+    corpusGroup.add(headMesh);
+
+    const armsWidth = horizontalBeamWidth * 0.9;
+    const armsHeight = height * 0.05;
+    const armsDepth = height * 0.05;
+    const armsGeo = new THREE.BoxGeometry(armsWidth, armsHeight, armsDepth);
+    const armsMesh = new THREE.Mesh(armsGeo, corpusMaterial);
+    armsMesh.position.y = torsoMesh.position.y + torsoHeight * 0.4;
+    armsMesh.position.z = corpusDepthOffset + armsDepth / 2;
+    corpusGroup.add(armsMesh);
+
+    const legLength = height * 0.3;
+    const legWidth = height * 0.05;
+    const legDepth = height * 0.05;
+    const legGeo = new THREE.BoxGeometry(legWidth, legLength, legDepth);
+
+    const legLeftMesh = new THREE.Mesh(legGeo, corpusMaterial);
+    legLeftMesh.position.y =
+      torsoMesh.position.y - torsoHeight / 2 - legLength / 2 + legWidth;
+    legLeftMesh.position.x = -legWidth * 0.6;
+    legLeftMesh.position.z = corpusDepthOffset + legDepth / 2;
+    legLeftMesh.rotation.z = THREE.MathUtils.degToRad(5);
+    corpusGroup.add(legLeftMesh);
+
+    const legRightMesh = new THREE.Mesh(legGeo, corpusMaterial);
+    legRightMesh.position.y = legLeftMesh.position.y;
+    legRightMesh.position.x = legWidth * 0.6;
+    legRightMesh.position.z = corpusDepthOffset + legDepth / 2;
+    legRightMesh.rotation.z = THREE.MathUtils.degToRad(-5);
+    corpusGroup.add(legRightMesh);
+
+    crucifixGroup.add(corpusGroup);
+  }
+
+  return crucifixGroup;
 }
 
 function curveMaterial(color, roughness) {
