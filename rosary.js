@@ -53,11 +53,12 @@ function onPointerMove(event) {
   console.log(pointer.x, pointer.y);
 }
 
-function insertItemIntoRosaryItems(name, description, itemIndex) {
+function insertItemIntoRosaryItems(name, description, itemIndex, uuid) {
   let arrayItem = {
     name: name,
     description: description,
     itemIndex: itemIndex,
+    uuid: uuid,
   };
   rosaryItems.push(arrayItem);
 }
@@ -76,8 +77,9 @@ function createRosary() {
   insertLoopBottom(scene, chainRadius);
   insertLine(scene, chainRadius);
   insertLoopBeads(spacedPoints, scene);
+  insertSalveRegina(scene);
 
-  // console.log(rosaryItems);
+  console.log(rosaryItems);
 
   insertLights(scene);
 
@@ -291,11 +293,15 @@ function insertLoopBeads(spacedPoints, scene) {
       spacedPoints[index].z,
       scene
     );
-    // itemIndex = index;
     meshSphere.name = itemIndex;
     rosaryBeads.push(meshSphere);
 
-    insertItemIntoRosaryItems(meshSphere.name, description, itemIndex);
+    insertItemIntoRosaryItems(
+      meshSphere.name,
+      description,
+      itemIndex,
+      meshSphere.uuid
+    );
   }
 }
 
@@ -328,7 +334,7 @@ function insertLineBeads(scene) {
   let beadCount = 0;
   let y = 0;
   let description = "";
-  for (let beadIndex = 0; beadIndex < 6; beadIndex++) {
+  for (let beadIndex = 5; beadIndex > 0; beadIndex--) {
     beadCount = beadCount + 1;
     let beadColor;
     let beadRadius;
@@ -361,10 +367,46 @@ function insertLineBeads(scene) {
       0,
       scene
     );
-    itemIndex = itemIndex + 1;
+    if (beadIndex > 0) itemIndex = itemIndex + 1;
+    if (beadIndex == 0) itemIndex = 0;
     meshSphere.name = itemIndex;
-    insertItemIntoRosaryItems(meshSphere.name, description, itemIndex);
+    insertItemIntoRosaryItems(
+      meshSphere.name,
+      description,
+      itemIndex,
+      meshSphere.uuid
+    );
   }
+}
+
+function insertSalveRegina(scene) {
+  let beadCount = 0;
+  let y = 0;
+  let beadColor = beadVeryLargeColor;
+  let beadRadius = beadVeryLargeRadius;
+  let description = "SalveRegina";
+  beadCount = beadCount + 1;
+
+  y = -0.35;
+
+  let meshSphere = insertSphere(
+    beadColor,
+    beadRoughness,
+    beadRadius,
+    0,
+    y,
+    0,
+    scene
+  );
+
+  itemIndex = 60;
+  meshSphere.name = itemIndex;
+  insertItemIntoRosaryItems(
+    meshSphere.name,
+    description,
+    itemIndex,
+    meshSphere.uuid
+  );
 }
 
 function insertBrownCross(scene) {
@@ -419,9 +461,11 @@ function insertBrownCross(scene) {
   crossGroup.add(horizontalMesh); // Add the positioned horizontal mesh
 
   crossGroup.position.set(0, -4.5, 0); // Center the group at the origin
+  crossGroup.name = 0;
   scene.add(crossGroup);
   console.dir(crossGroup);
-  // insertItemIntoRosaryItems(meshSphere.name, "Cross", 0);
+  insertItemIntoRosaryItems(crossGroup.name, "Cross", 0, crossGroup.uuid); // Updated to use crossGroup.name
+
   return crossGroup;
 }
 
