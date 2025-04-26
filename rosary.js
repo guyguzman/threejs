@@ -1,3 +1,4 @@
+import { active } from "d3";
 import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -24,6 +25,7 @@ let clickedBead = null;
 let rosaryBeads = [];
 let rosaryItems = [];
 let itemIndex = 0;
+let activeMeshes = [];
 
 window.onload = function () {
   createRosary();
@@ -34,15 +36,63 @@ window.onload = function () {
 };
 
 function selectBead(event) {
+  let colorActive = "#00ff00";
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(pointer, camera);
-  const intersects = raycaster.intersectObjects(scene.children);
-  const bead = scene.getObjectByName(intersects[0].object.name);
-  clickedBead = bead;
-  console.dir(bead);
-  const color = scene.getObjectByName(intersects[0].object.name).material.color;
-  bead.material.color.set("#00ff00");
+  let intersects = raycaster.intersectObjects(scene.children);
+  console.dir(`intersects length: ${intersects.length}`);
+  let intersectsCount = intersects.length;
+  if (intersectsCount == 0) {
+    console.log("No intersection");
+    return;
+  }
+  console.log(`Intersects: ${intersects[0]}`);
+  console.log(`Intersects: ${intersects[0].object.uuid}`);
+  let objectName = scene.getObjectByName(intersects[0].object.name);
+  let objectUuid = scene.getObjectByProperty("uuid", intersects[0].object.uuid);
+  let uuid = objectName.uuid;
+
+  if (activeMeshes.length > 0) {
+    console.log("Resetting color");
+    console.dir(activeMeshes);
+    activeMeshes.forEach((mesh) => {
+      console.dir(mesh);
+      if (mesh.type == "Mesh") {
+        mesh.material.color.set(colorActive);
+      }
+      let originalColor = rosaryItems.find(
+        (item) => item.uuid == mesh.uuid
+      ).color;
+      console.log(`Original color: ${originalColor}`);
+      mesh.material.color.set(originalColor);
+      console.log(`Reset color: ${mesh.material.color}`);
+    });
+    activeMeshes = [];
+  }
+
+  if (objectUuid.parent.type == "Group") {
+    let crossGroup = objectUuid.parent;
+    let crossGroupChildren = crossGroup.children;
+    activeMeshes.push(crossGroupChildren[0]);
+    activeMeshes.push(crossGroupChildren[1]);
+    crossGroupChildren[0].material.color.set(colorActive);
+    crossGroupChildren[1].material.color.set(colorActive);
+  }
+
+  if (objectUuid.parent.type == "Scene") {
+    objectUuid.material.color.set(colorActive);
+    activeMeshes.push(objectUuid);
+  }
+
+  console.dir(activeMeshes);
+
+  return;
+  console.log(`UUID: ${uuid}`);
+  console.dir(objectUuid);
+  let color = scene.getObjectByName(intersects[0].object.name).material.color;
+  objectName.material.color.set("#00ff00");
+  console.log(`Selected bead: ${objectName.name}`);
 }
 
 function onPointerMove(event) {
@@ -53,12 +103,21 @@ function onPointerMove(event) {
   console.log(pointer.x, pointer.y);
 }
 
-function insertItemIntoRosaryItems(name, description, itemIndex, uuid) {
+function insertItemIntoRosaryItems(
+  name,
+  description,
+  itemIndex,
+  uuid,
+  grouped,
+  color
+) {
   let arrayItem = {
     name: name,
     description: description,
     itemIndex: itemIndex,
     uuid: uuid,
+    grouped: grouped,
+    color: color,
   };
   rosaryItems.push(arrayItem);
 }
@@ -300,7 +359,9 @@ function insertLoopBeads(spacedPoints, scene) {
       meshSphere.name,
       description,
       itemIndex,
-      meshSphere.uuid
+      meshSphere.uuid,
+      false,
+      beadColor
     );
   }
 }
@@ -374,7 +435,9 @@ function insertLineBeads(scene) {
       meshSphere.name,
       description,
       itemIndex,
-      meshSphere.uuid
+      meshSphere.uuid,
+      false,
+      beadColor
     );
   }
 }
@@ -405,7 +468,9 @@ function insertSalveRegina(scene) {
     meshSphere.name,
     description,
     itemIndex,
-    meshSphere.uuid
+    meshSphere.uuid,
+    false,
+    beadColor
   );
 }
 
@@ -415,14 +480,14 @@ function insertBrownCross(scene) {
   const horizontalWidth = 1.0; // Total width of the horizontal beam
   const armThickness = 0.2; // Thickness of both beams
   const intersectionOffset = 0.25; // How far above the center the horizontal beam is placed
-  const brownColor = 0x652500; // Hex code
+  const crossColor = 0x652500; // Hex code
 
   // --- Material ---
   // Using MeshBasicMaterial for simplicity (doesn't require lights)
   // const material = new THREE.MeshBasicMaterial({ color: brownColor });
 
   const material = new THREE.MeshStandardMaterial({
-    color: brownColor,
+    color: crossColor,
     roughness: 0.9,
   });
 
@@ -464,7 +529,14 @@ function insertBrownCross(scene) {
   crossGroup.name = 0;
   scene.add(crossGroup);
   console.dir(crossGroup);
-  insertItemIntoRosaryItems(crossGroup.name, "Cross", 0, crossGroup.uuid); // Updated to use crossGroup.name
+  insertItemIntoRosaryItems(
+    crossGroup.name,
+    "Cross",
+    0,
+    crossGroup.uuid,
+    true,
+    crossColor
+  ); // Updated to use crossGroup.name
 
   return crossGroup;
 }
