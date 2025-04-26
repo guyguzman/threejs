@@ -1,12 +1,12 @@
 import * as THREE from "three";
 
-export function createBrownCross() {
+export function createBrownCross(scene) {
   // --- Configuration ---
   const verticalHeight = 1.5; // Total height of the vertical beam
   const horizontalWidth = 1.0; // Total width of the horizontal beam
   const armThickness = 0.2; // Thickness of both beams
   const intersectionOffset = 0.25; // How far above the center the horizontal beam is placed
-  const brownColor = 0x652500; // Hex code for SaddleBrown
+  const brownColor = 0x652500; // Hex code
 
   // --- Material ---
   // Using MeshBasicMaterial for simplicity (doesn't require lights)

@@ -2,7 +2,7 @@ import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { createBrownCross } from "./brownCross.js";
+// import { createBrownCross as insertBrownCross } from "./brownCross.js";
 
 let beadSmallRadius = 0.1;
 let beadLargeRadius = 0.15;
@@ -22,6 +22,7 @@ let controls;
 let controlsEnabled = true;
 let clickedBead = null;
 let rosaryBeads = [];
+let rosaryItems = [];
 let itemIndex = 0;
 
 window.onload = function () {
@@ -52,6 +53,15 @@ function onPointerMove(event) {
   console.log(pointer.x, pointer.y);
 }
 
+function insertItemIntoRosaryItems(name, description, itemIndex) {
+  let arrayItem = {
+    name: name,
+    description: description,
+    itemIndex: itemIndex,
+  };
+  rosaryItems.push(arrayItem);
+}
+
 function createRosary() {
   let enableGrid = false;
   scene = new THREE.Scene();
@@ -61,13 +71,13 @@ function createRosary() {
   let spacedPointsCount = 110;
 
   let spacedPoints = insertLoopTop(scene, chainRadius, spacedPointsCount);
+  insertBrownCross(scene);
+  insertLineBeads(scene);
   insertLoopBottom(scene, chainRadius);
   insertLine(scene, chainRadius);
-  insertLineBeads(scene);
   insertLoopBeads(spacedPoints, scene);
 
-  const myCross = createBrownCross();
-  scene.add(myCross);
+  // console.log(rosaryItems);
 
   insertLights(scene);
 
@@ -127,13 +137,14 @@ function addOrbitControls(camera, canvas) {
     controls.autoRotate = false;
     controls.autoRotateSpeed = 5;
     controls.maxPolarAngle = Math.PI / 2;
+    controls.maxPolarAngle = Math.PI;
     controls.target = new THREE.Vector3(0, -2, 0);
   }
 }
 
 function pointCamera(x, y, z) {
   camera.lookAt(x, y, z);
-  console.log("camera", camera);
+  // console.log("camera", camera);
 }
 
 function insertLights(scene) {
@@ -259,13 +270,17 @@ function insertLoopBottom(scene, radius) {
 
 function insertLoopBeads(spacedPoints, scene) {
   let beadCount = 0;
+  let description = "";
   for (let index = 2; index < spacedPoints.length - 2; index = index + 2) {
     beadCount = beadCount + 1;
     let beadRadius = beadSmallRadius;
     let beadColor = beadSmallColor;
+    itemIndex = itemIndex + 1;
+    description = "HailMary";
     if (beadCount % 11 == 0) {
       beadColor = beadLargeColor;
       beadRadius = beadLargeRadius;
+      description = "OurFather";
     }
     let meshSphere = insertSphere(
       beadColor,
@@ -276,12 +291,11 @@ function insertLoopBeads(spacedPoints, scene) {
       spacedPoints[index].z,
       scene
     );
-    itemIndex = index;
+    // itemIndex = index;
     meshSphere.name = itemIndex;
-    console.log(
-      `loopBead - ${itemIndex}, color: ${beadColor}, beadRadius: ${beadRadius}, beadCount: ${beadCount}`
-    );
     rosaryBeads.push(meshSphere);
+
+    insertItemIntoRosaryItems(meshSphere.name, description, itemIndex);
   }
 }
 
@@ -313,6 +327,7 @@ function insertLine(scene, radius) {
 function insertLineBeads(scene) {
   let beadCount = 0;
   let y = 0;
+  let description = "";
   for (let beadIndex = 0; beadIndex < 6; beadIndex++) {
     beadCount = beadCount + 1;
     let beadColor;
@@ -320,13 +335,15 @@ function insertLineBeads(scene) {
     if (beadIndex == 1 || beadIndex == 5) {
       beadColor = beadLargeColor;
       beadRadius = beadLargeRadius;
+      description = "OurFather";
     } else if (beadIndex > 0) {
       beadColor = beadSmallColor;
       beadRadius = beadSmallRadius;
+      description = "HailMary";
     } else if (beadIndex == 0) {
       beadColor = beadVeryLargeColor;
-      console.log(`beadVeryLargeColor: ${beadVeryLargeColor}`);
       beadRadius = beadVeryLargeRadius;
+      description = "SalveRegina";
     }
 
     if (beadIndex == 0) {
@@ -344,115 +361,68 @@ function insertLineBeads(scene) {
       0,
       scene
     );
-    itemIndex = beadIndex + 1 + itemIndex;
+    itemIndex = itemIndex + 1;
     meshSphere.name = itemIndex;
-    console.log(
-      `loopBead - ${itemIndex}, color: ${beadColor}, beadRadius: ${beadRadius}, beadCount: ${beadCount}`
-    );
-    rosaryBeads.push(meshSphere);
+    insertItemIntoRosaryItems(meshSphere.name, description, itemIndex);
   }
 }
 
-function createCrucifix(options = {}) {
-  const height = options.height !== undefined ? options.height : 10;
-  const beamWidth = options.beamWidth !== undefined ? options.beamWidth : 0.5;
-  const crossMaterial =
-    options.crossMaterial instanceof THREE.Material
-      ? options.crossMaterial
-      : new THREE.MeshStandardMaterial({
-          color: 0x8b4513,
-          roughness: 0.8,
-          metalness: 0.1,
-        });
-  const corpusMaterial =
-    options.corpusMaterial instanceof THREE.Material
-      ? options.corpusMaterial
-      : new THREE.MeshStandardMaterial({
-          color: 0xd3d3d3,
-          roughness: 0.7,
-          metalness: 0.2,
-        });
-  const addCorpus = options.addCorpus !== undefined ? options.addCorpus : true;
+function insertBrownCross(scene) {
+  // --- Configuration ---
+  const verticalHeight = 1.5; // Total height of the vertical beam
+  const horizontalWidth = 1.0; // Total width of the horizontal beam
+  const armThickness = 0.2; // Thickness of both beams
+  const intersectionOffset = 0.25; // How far above the center the horizontal beam is placed
+  const brownColor = 0x652500; // Hex code
 
-  const verticalBeamHeight = height;
-  const horizontalBeamWidth = height * 0.6;
-  const horizontalBeamPosition = verticalBeamHeight * 0.3;
+  // --- Material ---
+  // Using MeshBasicMaterial for simplicity (doesn't require lights)
+  // const material = new THREE.MeshBasicMaterial({ color: brownColor });
 
-  const crucifixGroup = new THREE.Group();
+  const material = new THREE.MeshStandardMaterial({
+    color: brownColor,
+    roughness: 0.9,
+  });
 
-  const verticalGeo = new THREE.BoxGeometry(
-    beamWidth,
-    verticalBeamHeight,
-    beamWidth
+  // Alternatively, use MeshStandardMaterial for a more realistic look (requires lights)
+  // const material = new THREE.MeshStandardMaterial({ color: brownColor, roughness: 0.8, metalness: 0.1 });
+
+  // --- Geometries ---
+  // Vertical bar geometry (width/depth = thickness, height = verticalHeight)
+  const verticalGeometry = new THREE.BoxGeometry(
+    armThickness,
+    verticalHeight,
+    armThickness
   );
-  const verticalMesh = new THREE.Mesh(verticalGeo, crossMaterial);
-  verticalMesh.position.y = verticalBeamHeight / 2;
-  crucifixGroup.add(verticalMesh);
-
-  const horizontalGeo = new THREE.BoxGeometry(
-    horizontalBeamWidth,
-    beamWidth,
-    beamWidth
+  // Horizontal bar geometry (width = horizontalWidth, height/depth = thickness)
+  const horizontalGeometry = new THREE.BoxGeometry(
+    horizontalWidth,
+    armThickness,
+    armThickness
   );
-  const horizontalMesh = new THREE.Mesh(horizontalGeo, crossMaterial);
-  horizontalMesh.position.y = verticalBeamHeight - horizontalBeamPosition;
-  horizontalMesh.position.z = beamWidth / 2;
-  crucifixGroup.add(horizontalMesh);
 
-  if (addCorpus) {
-    const corpusGroup = new THREE.Group();
-    const corpusDepthOffset = beamWidth;
+  // --- Meshes ---
+  // Create the mesh for the vertical bar
+  const verticalMesh = new THREE.Mesh(verticalGeometry, material);
+  // Create the mesh for the horizontal bar
+  const horizontalMesh = new THREE.Mesh(horizontalGeometry, material);
 
-    const torsoHeight = height * 0.35;
-    const torsoWidth = height * 0.1;
-    const torsoDepth = height * 0.08;
-    const torsoGeo = new THREE.BoxGeometry(torsoWidth, torsoHeight, torsoDepth);
-    const torsoMesh = new THREE.Mesh(torsoGeo, corpusMaterial);
-    torsoMesh.position.y = horizontalMesh.position.y - torsoHeight * 0.1;
-    torsoMesh.position.z = corpusDepthOffset + torsoDepth / 2;
-    corpusGroup.add(torsoMesh);
+  // --- Positioning ---
+  // Position the horizontal bar higher up on the Y-axis
+  horizontalMesh.position.set(0, intersectionOffset, 0);
+  // The vertical mesh remains centered at the group's origin (0,0,0) by default.
 
-    const headRadius = height * 0.06;
-    const headGeo = new THREE.SphereGeometry(headRadius, 16, 8);
-    const headMesh = new THREE.Mesh(headGeo, corpusMaterial);
-    headMesh.position.y =
-      torsoMesh.position.y + torsoHeight / 2 + headRadius * 0.8;
-    headMesh.position.z = corpusDepthOffset + headRadius / 2;
-    corpusGroup.add(headMesh);
+  // --- Group ---
+  // Create a group to hold both parts of the cross
+  const crossGroup = new THREE.Group();
+  crossGroup.add(verticalMesh);
+  crossGroup.add(horizontalMesh); // Add the positioned horizontal mesh
 
-    const armsWidth = horizontalBeamWidth * 0.9;
-    const armsHeight = height * 0.05;
-    const armsDepth = height * 0.05;
-    const armsGeo = new THREE.BoxGeometry(armsWidth, armsHeight, armsDepth);
-    const armsMesh = new THREE.Mesh(armsGeo, corpusMaterial);
-    armsMesh.position.y = torsoMesh.position.y + torsoHeight * 0.4;
-    armsMesh.position.z = corpusDepthOffset + armsDepth / 2;
-    corpusGroup.add(armsMesh);
-
-    const legLength = height * 0.3;
-    const legWidth = height * 0.05;
-    const legDepth = height * 0.05;
-    const legGeo = new THREE.BoxGeometry(legWidth, legLength, legDepth);
-
-    const legLeftMesh = new THREE.Mesh(legGeo, corpusMaterial);
-    legLeftMesh.position.y =
-      torsoMesh.position.y - torsoHeight / 2 - legLength / 2 + legWidth;
-    legLeftMesh.position.x = -legWidth * 0.6;
-    legLeftMesh.position.z = corpusDepthOffset + legDepth / 2;
-    legLeftMesh.rotation.z = THREE.MathUtils.degToRad(5);
-    corpusGroup.add(legLeftMesh);
-
-    const legRightMesh = new THREE.Mesh(legGeo, corpusMaterial);
-    legRightMesh.position.y = legLeftMesh.position.y;
-    legRightMesh.position.x = legWidth * 0.6;
-    legRightMesh.position.z = corpusDepthOffset + legDepth / 2;
-    legRightMesh.rotation.z = THREE.MathUtils.degToRad(-5);
-    corpusGroup.add(legRightMesh);
-
-    crucifixGroup.add(corpusGroup);
-  }
-
-  return crucifixGroup;
+  crossGroup.position.set(0, -4.5, 0); // Center the group at the origin
+  scene.add(crossGroup);
+  console.dir(crossGroup);
+  // insertItemIntoRosaryItems(meshSphere.name, "Cross", 0);
+  return crossGroup;
 }
 
 function curveMaterial(color, roughness) {
