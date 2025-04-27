@@ -14,6 +14,7 @@ let chainRadius = 0.04;
 let chainColor = "#606265";
 let beadSmallColor = "#f0f2f5";
 let beadLargeColor = "#ff0000";
+let crossColor = "#652500";
 let beadVeryLargeColor = beadSmallColor;
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -58,16 +59,28 @@ function selectBead(event) {
     console.dir(activeMeshes);
     activeMeshes.forEach((mesh) => {
       console.dir(mesh);
-      if (mesh.type == "Mesh") {
-        mesh.material.color.set(colorActive);
+
+      if (mesh.parent.type == "Scene") {
+        let originalColor = rosaryItems.find(
+          (item) => item.uuid == mesh.uuid
+        ).color;
+        mesh.material.color.set(originalColor);
+        console.log(`Original color: ${originalColor}`);
       }
-      let originalColor = rosaryItems.find(
-        (item) => item.uuid == mesh.uuid
-      ).color;
-      console.log(`Original color: ${originalColor}`);
-      mesh.material.color.set(originalColor);
+
+      if (mesh.parent.type == "Group") {
+        console.log("Parent");
+        let originalColor = rosaryItems.find(
+          (item) => item.uuid == mesh.parent.uuid
+        ).color;
+        console.log(`Original color: ${originalColor}`);
+        console.log(mesh);
+        mesh.material.color.set(originalColor);
+      }
+
       console.log(`Reset color: ${mesh.material.color}`);
     });
+
     activeMeshes = [];
   }
 
@@ -480,7 +493,6 @@ function insertBrownCross(scene) {
   const horizontalWidth = 1.0; // Total width of the horizontal beam
   const armThickness = 0.2; // Thickness of both beams
   const intersectionOffset = 0.25; // How far above the center the horizontal beam is placed
-  const crossColor = 0x652500; // Hex code
 
   // --- Material ---
   // Using MeshBasicMaterial for simplicity (doesn't require lights)
