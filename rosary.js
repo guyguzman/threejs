@@ -3,6 +3,8 @@ import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { gsap } from "gsap";
+import { smoothZoomToUuid } from "./zooming";
 // import { createBrownCross as insertBrownCross } from "./brownCross.js";
 
 let beadSmallRadius = 0.1;
@@ -13,8 +15,13 @@ let chainRoughness = 0;
 let chainRadius = 0.04;
 let chainColor = "#606265";
 let beadSmallColor = "#f0f2f5";
+// beadSmallColor = "#70B8FF";
 let beadLargeColor = "#ff0000";
+beadLargeColor = "#0080FF";
+beadLargeColor = "#21A2FF";
 let crossColor = "#652500";
+let activeColor = "#00ff00";
+activeColor = "#FF2172";
 let beadVeryLargeColor = beadSmallColor;
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -37,26 +44,29 @@ window.onload = function () {
 };
 
 function selectBead(event) {
-  let colorActive = "#00ff00";
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(pointer, camera);
+
   let intersects = raycaster.intersectObjects(scene.children);
-  console.dir(`intersects length: ${intersects.length}`);
   let intersectsCount = intersects.length;
   if (intersectsCount == 0) {
     console.log("No intersection");
     return;
   }
-  console.log(`Intersects: ${intersects[0]}`);
-  console.log(`Intersects: ${intersects[0].object.uuid}`);
+
   let objectName = scene.getObjectByName(intersects[0].object.name);
   let objectUuid = scene.getObjectByProperty("uuid", intersects[0].object.uuid);
   let uuid = objectName.uuid;
 
+  if (
+    objectUuid.geometry.type == "CylinderGeometry" ||
+    objectUuid.geometry.type == "TubeGeometry"
+  ) {
+    return;
+  }
+
   if (activeMeshes.length > 0) {
-    console.log("Resetting color");
-    console.dir(activeMeshes);
     activeMeshes.forEach((mesh) => {
       console.dir(mesh);
 
@@ -65,7 +75,6 @@ function selectBead(event) {
           (item) => item.uuid == mesh.uuid
         ).color;
         mesh.material.color.set(originalColor);
-        console.log(`Original color: ${originalColor}`);
       }
 
       if (mesh.parent.type == "Group") {
@@ -73,12 +82,8 @@ function selectBead(event) {
         let originalColor = rosaryItems.find(
           (item) => item.uuid == mesh.parent.uuid
         ).color;
-        console.log(`Original color: ${originalColor}`);
-        console.log(mesh);
         mesh.material.color.set(originalColor);
       }
-
-      console.log(`Reset color: ${mesh.material.color}`);
     });
 
     activeMeshes = [];
@@ -89,23 +94,21 @@ function selectBead(event) {
     let crossGroupChildren = crossGroup.children;
     activeMeshes.push(crossGroupChildren[0]);
     activeMeshes.push(crossGroupChildren[1]);
-    crossGroupChildren[0].material.color.set(colorActive);
-    crossGroupChildren[1].material.color.set(colorActive);
+    crossGroupChildren[0].material.color.set(activeColor);
+    crossGroupChildren[1].material.color.set(activeColor);
   }
 
   if (objectUuid.parent.type == "Scene") {
-    objectUuid.material.color.set(colorActive);
+    objectUuid.material.color.set(activeColor);
     activeMeshes.push(objectUuid);
+    smoothZoomToUuid(objectUuid.uuid, camera, scene, controls, {
+      padding: 1.2,
+      duration: 1,
+      easing: "power3.inOut",
+    });
   }
 
-  console.dir(activeMeshes);
-
   return;
-  console.log(`UUID: ${uuid}`);
-  console.dir(objectUuid);
-  let color = scene.getObjectByName(intersects[0].object.name).material.color;
-  objectName.material.color.set("#00ff00");
-  console.log(`Selected bead: ${objectName.name}`);
 }
 
 function onPointerMove(event) {
@@ -210,15 +213,16 @@ function addOrbitControls(camera, canvas) {
     controls.enableZoom = true;
     controls.autoRotate = false;
     controls.autoRotateSpeed = 5;
-    controls.maxPolarAngle = Math.PI / 2;
-    controls.maxPolarAngle = Math.PI;
-    controls.target = new THREE.Vector3(0, -2, 0);
+    // controls.maxPolarAngle = Math.PI / 2;
+    // controls.maxPolarAngle = Math.PI;
+    controls.minPolarAngle = THREE.MathUtils.degToRad(10); // limit vertical tilt
+    controls.maxPolarAngle = THREE.MathUtils.degToRad(180);
+    controls.target = new THREE.Vector3(0, -4, 0);
   }
 }
 
 function pointCamera(x, y, z) {
   camera.lookAt(x, y, z);
-  // console.log("camera", camera);
 }
 
 function insertLights(scene) {
