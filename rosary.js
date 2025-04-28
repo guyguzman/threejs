@@ -106,11 +106,19 @@ function setStorage(
   nextIndex = 0,
   lastIimeStamp = new Date()
 ) {
+  if (checkStorage()) {
+    let previousState = getStorage();
+    if (previousState.currentIndex == currentIndex) {
+      return;
+    }
+    previousIndex = previousState.currentIndex;
+  }
+
   currentState = {
     started: started,
     previousIndex: previousIndex,
     currentIndex: currentIndex,
-    nextIndex: nextIndex,
+    nextIndex: currentIndex + 1,
     lastIimeStamp: lastIimeStamp,
   };
   localStorage.setItem("currentState", JSON.stringify(currentState));
@@ -118,6 +126,15 @@ function setStorage(
 
 function initializeStorage() {
   setStorage();
+}
+
+function checkStorage() {
+  let currentStateJSON = localStorage.getItem("currentState");
+  if (currentStateJSON == null) {
+    return false;
+  } else {
+    return true;
+  }
 }
 
 function getStorage() {
