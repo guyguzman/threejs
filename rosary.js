@@ -4,6 +4,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { gsap } from "gsap";
 import { smoothZoomToUuid } from "./zooming";
+import { index, select } from "d3";
 
 let beadSmallRadius = 0.1;
 let beadLargeRadius = 0.15;
@@ -36,18 +37,6 @@ let itemIndex = 0;
 let activeMeshes = [];
 
 let currentState = {};
-
-//  currentState = {
-//   started: false,
-//   previousUuid: null,
-//   currentUuid: null,
-//   nextUuid: null,
-//   previousIndex: 0,
-//   currentIndex: 0,
-//   nextIndex: 0,
-//   lastIimeStamp: new Date().getTime(),
-// };
-
 let clearLocalStorage = true;
 
 window.onload = function () {
@@ -55,15 +44,11 @@ window.onload = function () {
     localStorage.clear();
   }
 
-  // let temp = getStorage();
-  // console.log(temp);
-  // initializeStorage();
-  // temp = getStorage();
-  // console.log(temp);
-
   createRosary();
   window.addEventListener("mousemove", onPointerMove);
-  window.addEventListener("click", selectBead);
+  window.addEventListener("click", clickBead);
+
+  selectBead(0);
 
   let count = 0;
   rosaryItems.forEach((item) => {
@@ -81,8 +66,7 @@ window.onload = function () {
     }
   });
 
-  // let storageExists = getStorage();
-  if (getStorage() == null) {
+  if (!checkStorage) {
     initializeStorage();
   }
 };
@@ -137,13 +121,17 @@ function checkStorage() {
   }
 }
 
+function clearStorage() {
+  localStorage.clear();
+}
+
 function getStorage() {
   let currentStateJSON = localStorage.getItem("currentState");
   currentState = JSON.parse(currentStateJSON);
   return currentState;
 }
 
-function selectBead(event) {
+function clickBead(event) {
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(pointer, camera);
@@ -163,13 +151,22 @@ function selectBead(event) {
     return;
   }
 
+  setActiveBead(objectUuid);
+}
+
+function selectBead(index = 0) {
+  let rosaryItem = rosaryItems[index];
+  let objectUuid = scene.getObjectByProperty("uuid", rosaryItem.uuid);
+  console.log(objectUuid);
+  setActiveBead(objectUuid);
+}
+
+function setActiveBead(objectUuid) {
   let rosaryItem;
   let originalColor;
 
   if (activeMeshes.length > 0) {
     activeMeshes.forEach((mesh) => {
-      console.log(mesh.parent.type);
-
       if (mesh.parent.type == "Scene") {
         originalColor = rosaryItems.find(
           (item) => item.uuid == mesh.uuid
@@ -188,21 +185,40 @@ function selectBead(event) {
     activeMeshes = [];
   }
 
+  let isCross = false;
+  let crossGroup = null;
+
+  if (objectUuid.children.length > 0) {
+    isCross = true;
+    crossGroup = objectUuid;
+    console.log(crossGroup);
+  }
+
   if (objectUuid.parent.type == "Group") {
-    let crossGroup = objectUuid.parent;
+    isCross = true;
+    crossGroup = objectUuid.parent;
+    console.log(crossGroup);
+  }
+
+  console.log("made it here");
+  console.log(crossGroup);
+
+  if (isCross) {
     let rosaryIndex = rosaryItems.findIndex(
       (item) => item.uuid == crossGroup.uuid
     );
+    console.log(rosaryIndex);
     let rosaryItem = rosaryItems[rosaryIndex];
     setStorage(true, 0, rosaryIndex, 0, new Date());
     let crossGroupChildren = crossGroup.children;
+    console.log(crossGroupChildren);
     activeMeshes.push(crossGroupChildren[0]);
     activeMeshes.push(crossGroupChildren[1]);
     crossGroupChildren[0].material.color.set(activeColor);
     crossGroupChildren[1].material.color.set(activeColor);
   }
 
-  if (objectUuid.parent.type == "Scene") {
+  if (!isCross && objectUuid.parent.type == "Scene") {
     let rosaryIndex = rosaryItems.findIndex(
       (item) => item.uuid == objectUuid.uuid
     );
