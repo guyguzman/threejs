@@ -149,7 +149,6 @@ function selectBead(event) {
   let rosaryItem;
   let originalColor;
 
-  console.log(`Active meshes: ${activeMeshes.length}`);
   if (activeMeshes.length > 0) {
     activeMeshes.forEach((mesh) => {
       console.log(mesh.parent.type);
@@ -158,8 +157,6 @@ function selectBead(event) {
         originalColor = rosaryItems.find(
           (item) => item.uuid == mesh.uuid
         ).color;
-        console.log(`originalColor: ${originalColor}`);
-        console.log(originalColor);
         mesh.material.color.set(originalColor);
       }
 
@@ -167,7 +164,6 @@ function selectBead(event) {
         originalColor = rosaryItems.find(
           (item) => item.uuid == mesh.parent.uuid
         ).color;
-        console.log(originalColor);
         mesh.material.color.set(originalColor);
       }
     });
@@ -177,6 +173,11 @@ function selectBead(event) {
 
   if (objectUuid.parent.type == "Group") {
     let crossGroup = objectUuid.parent;
+    let rosaryIndex = rosaryItems.findIndex(
+      (item) => item.uuid == crossGroup.uuid
+    );
+    let rosaryItem = rosaryItems[rosaryIndex];
+    setStorage(true, 0, rosaryIndex, 0, new Date());
     let crossGroupChildren = crossGroup.children;
     activeMeshes.push(crossGroupChildren[0]);
     activeMeshes.push(crossGroupChildren[1]);
@@ -185,6 +186,12 @@ function selectBead(event) {
   }
 
   if (objectUuid.parent.type == "Scene") {
+    let rosaryIndex = rosaryItems.findIndex(
+      (item) => item.uuid == objectUuid.uuid
+    );
+    let rosaryItem = rosaryItems[rosaryIndex];
+    setStorage(true, 0, rosaryIndex, 0, new Date());
+
     objectUuid.material.color.set(activeColor);
     activeMeshes.push(objectUuid);
     smoothZoomToUuid(objectUuid.uuid, camera, scene, controls, {
