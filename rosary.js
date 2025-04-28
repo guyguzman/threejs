@@ -1,4 +1,4 @@
-import { active } from "d3";
+import { active, local } from "d3";
 import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -13,16 +13,18 @@ let beadVeryLargeRadius = 0.25;
 let beadRoughness = 0.5;
 let chainRoughness = 0;
 let chainRadius = 0.04;
+
 let chainColor = "#606265";
 let beadSmallColor = "#f0f2f5";
-// beadSmallColor = "#70B8FF";
 let beadLargeColor = "#ff0000";
 beadLargeColor = "#0080FF";
 beadLargeColor = "#21A2FF";
 let crossColor = "#652500";
 let activeColor = "#00ff00";
 activeColor = "#FF2172";
+let nextColor = "#E0FF21";
 let beadVeryLargeColor = beadSmallColor;
+
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let camera;
@@ -35,13 +37,129 @@ let rosaryItems = [];
 let itemIndex = 0;
 let activeMeshes = [];
 
+let currentState = {
+  started: false,
+  previousUuid: null,
+  currentUuid: null,
+  nextUuid: null,
+  previousIndex: 0,
+  currentIndex: 0,
+  nextIndex: 0,
+  lastIimeStamp: new Date().getTime(),
+};
+
+let clearLocalStorage = false;
+
 window.onload = function () {
-  createRosary();
+  if (clearLocalStorage) {
+    localStorage.clear();
+  }
+
+  setStorage();
+  let temp = getStorage();
+  console.log(temp);
+  return;
+
+  // putStorage();
+  // testStorage();
+  // return;
+
+  // createRosary();
   //window.addEventListener("mousemove", onPointerMove);
   window.addEventListener("click", selectBead);
-  console.dir(rosaryBeads);
-  // rosaryBeads[0].material.color.set("#0000ff");
+
+  let count = 0;
+  rosaryItems.forEach((item) => {
+    if (count >= 0 && count < rosaryItems.length) {
+      // console.log(count);
+      // console.log(item);
+      let objectUuid = scene.getObjectByProperty("uuid", item.uuid);
+
+      if (item.group) {
+        objectUuid.children.forEach((child) => {
+          // console.log(child.material.color);
+        });
+      }
+
+      if (!item.group) {
+        // console.log(objectUuid.material.color);
+      }
+
+      count = count + 1;
+    }
+  });
+
+  let storageExists = getStorage();
+  console.log(`storageExists ${storageExists}`);
+  if (!storageExists) {
+    console.log("No Local Storage, set Storage");
+    setStorage();
+  }
+  storageExists = getStorage();
+  console.log(`storageExists ${storageExists}`);
+  return;
+
+  return;
+  if (storageExists) {
+    getStorage();
+    console.log("Found Local Storage");
+    console.log(currentState);
+  } else {
+    setStorage();
+    console.log("Initialized Local Storage");
+  }
 };
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function testStorage() {
+  localStorage.setItem("currentState", JSON.stringify(currentState));
+  let currentStateJSON = localStorage.getItem("currentState");
+  currentState = JSON.parse(currentStateJSON);
+  console.log(currentState);
+}
+
+function setState(){}
+
+function setStorage(started = false, previousIndex = 0, currentIndex = 0, nextIndex = 0, lastIimeStamp = new Date()) {{
+  currentState = {
+    started: started,
+    previousIndex: previousIndex,
+    currentIndex: currentIndex,
+    nextIndex: nextIndex,
+    lastIimeStamp: lastIimeStamp,
+  };
+  localStorage.setItem("currentState", JSON.stringify(currentState));
+}
+  
+function initializeStorage(){
+  setStorage();
+}
+  
+function setStorage() {
+  localStorage.setItem("currentState", JSON.stringify(currentState));
+  // const currentStateJSON = localStorage.getItem("currentState");
+  // console.log(`setStorage: ${currentStateJSON}`);
+  // console.log("");
+}
+
+function getStorage() {
+  let currentStateJSON = localStorage.getItem("currentState");
+  currentState = JSON.parse(currentStateJSON);
+  // console.log(`getStorage: ${currentStateJSON}`);
+  // console.log(currentState);
+  // console.log("");
+
+  if (currentState === null) {
+    // console.log("No Local Storage");
+    return false;
+  } else {
+    // console.log("Found Local Storage");
+    return true;
+  }
+}
 
 function selectBead(event) {
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -51,13 +169,12 @@ function selectBead(event) {
   let intersects = raycaster.intersectObjects(scene.children);
   let intersectsCount = intersects.length;
   if (intersectsCount == 0) {
-    console.log("No intersection");
     return;
   }
 
-  let objectName = scene.getObjectByName(intersects[0].object.name);
   let objectUuid = scene.getObjectByProperty("uuid", intersects[0].object.uuid);
-  let uuid = objectName.uuid;
+
+  console.log(objectUuid);
 
   if (
     objectUuid.geometry.type == "CylinderGeometry" ||
@@ -78,7 +195,6 @@ function selectBead(event) {
       }
 
       if (mesh.parent.type == "Group") {
-        console.log("Parent");
         let originalColor = rosaryItems.find(
           (item) => item.uuid == mesh.parent.uuid
         ).color;
@@ -124,7 +240,7 @@ function insertItemIntoRosaryItems(
   description,
   itemIndex,
   uuid,
-  grouped,
+  group,
   color
 ) {
   let arrayItem = {
@@ -132,7 +248,7 @@ function insertItemIntoRosaryItems(
     description: description,
     itemIndex: itemIndex,
     uuid: uuid,
-    grouped: grouped,
+    group: group,
     color: color,
   };
   rosaryItems.push(arrayItem);
@@ -153,9 +269,6 @@ function createRosary() {
   insertLine(scene, chainRadius);
   insertLoopBeads(spacedPoints, scene);
   insertSalveRegina(scene);
-
-  console.log(rosaryItems);
-
   insertLights(scene);
 
   let camera = addCamera(scene);
