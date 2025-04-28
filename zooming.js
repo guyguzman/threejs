@@ -41,7 +41,6 @@ export function smoothZoomToUuid(
   dist *= padding;
   dist = 0.6;
   let zoomOutFactor = 7;
-  console.log("dist", dist, "maxDim", maxDim, "fovRad", fovRad);
   dist = dist * zoomOutFactor; // extra space around object
 
   // keep current viewing direction:

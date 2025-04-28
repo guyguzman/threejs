@@ -1,11 +1,9 @@
-import { active, local } from "d3";
 import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { gsap } from "gsap";
 import { smoothZoomToUuid } from "./zooming";
-// import { createBrownCross as insertBrownCross } from "./brownCross.js";
 
 let beadSmallRadius = 0.1;
 let beadLargeRadius = 0.15;
@@ -37,76 +35,55 @@ let rosaryItems = [];
 let itemIndex = 0;
 let activeMeshes = [];
 
-let currentState = {
-  started: false,
-  previousUuid: null,
-  currentUuid: null,
-  nextUuid: null,
-  previousIndex: 0,
-  currentIndex: 0,
-  nextIndex: 0,
-  lastIimeStamp: new Date().getTime(),
-};
+let currentState = {};
 
-let clearLocalStorage = false;
+//  currentState = {
+//   started: false,
+//   previousUuid: null,
+//   currentUuid: null,
+//   nextUuid: null,
+//   previousIndex: 0,
+//   currentIndex: 0,
+//   nextIndex: 0,
+//   lastIimeStamp: new Date().getTime(),
+// };
+
+let clearLocalStorage = true;
 
 window.onload = function () {
   if (clearLocalStorage) {
     localStorage.clear();
   }
 
-  setStorage();
-  let temp = getStorage();
-  console.log(temp);
-  return;
+  // let temp = getStorage();
+  // console.log(temp);
+  // initializeStorage();
+  // temp = getStorage();
+  // console.log(temp);
 
-  // putStorage();
-  // testStorage();
-  // return;
-
-  // createRosary();
-  //window.addEventListener("mousemove", onPointerMove);
+  createRosary();
+  window.addEventListener("mousemove", onPointerMove);
   window.addEventListener("click", selectBead);
 
   let count = 0;
   rosaryItems.forEach((item) => {
     if (count >= 0 && count < rosaryItems.length) {
-      // console.log(count);
-      // console.log(item);
       let objectUuid = scene.getObjectByProperty("uuid", item.uuid);
 
       if (item.group) {
-        objectUuid.children.forEach((child) => {
-          // console.log(child.material.color);
-        });
+        objectUuid.children.forEach((child) => {});
       }
 
       if (!item.group) {
-        // console.log(objectUuid.material.color);
       }
 
       count = count + 1;
     }
   });
 
-  let storageExists = getStorage();
-  console.log(`storageExists ${storageExists}`);
-  if (!storageExists) {
-    console.log("No Local Storage, set Storage");
-    setStorage();
-  }
-  storageExists = getStorage();
-  console.log(`storageExists ${storageExists}`);
-  return;
-
-  return;
-  if (storageExists) {
-    getStorage();
-    console.log("Found Local Storage");
-    console.log(currentState);
-  } else {
-    setStorage();
-    console.log("Initialized Local Storage");
+  // let storageExists = getStorage();
+  if (getStorage() == null) {
+    initializeStorage();
   }
 };
 
@@ -118,12 +95,17 @@ function testStorage() {
   localStorage.setItem("currentState", JSON.stringify(currentState));
   let currentStateJSON = localStorage.getItem("currentState");
   currentState = JSON.parse(currentStateJSON);
-  console.log(currentState);
 }
 
-function setState(){}
+function setState() {}
 
-function setStorage(started = false, previousIndex = 0, currentIndex = 0, nextIndex = 0, lastIimeStamp = new Date()) {{
+function setStorage(
+  started = false,
+  previousIndex = 0,
+  currentIndex = 0,
+  nextIndex = 0,
+  lastIimeStamp = new Date()
+) {
   currentState = {
     started: started,
     previousIndex: previousIndex,
@@ -133,32 +115,15 @@ function setStorage(started = false, previousIndex = 0, currentIndex = 0, nextIn
   };
   localStorage.setItem("currentState", JSON.stringify(currentState));
 }
-  
-function initializeStorage(){
+
+function initializeStorage() {
   setStorage();
-}
-  
-function setStorage() {
-  localStorage.setItem("currentState", JSON.stringify(currentState));
-  // const currentStateJSON = localStorage.getItem("currentState");
-  // console.log(`setStorage: ${currentStateJSON}`);
-  // console.log("");
 }
 
 function getStorage() {
   let currentStateJSON = localStorage.getItem("currentState");
   currentState = JSON.parse(currentStateJSON);
-  // console.log(`getStorage: ${currentStateJSON}`);
-  // console.log(currentState);
-  // console.log("");
-
-  if (currentState === null) {
-    // console.log("No Local Storage");
-    return false;
-  } else {
-    // console.log("Found Local Storage");
-    return true;
-  }
+  return currentState;
 }
 
 function selectBead(event) {
@@ -174,8 +139,6 @@ function selectBead(event) {
 
   let objectUuid = scene.getObjectByProperty("uuid", intersects[0].object.uuid);
 
-  console.log(objectUuid);
-
   if (
     objectUuid.geometry.type == "CylinderGeometry" ||
     objectUuid.geometry.type == "TubeGeometry"
@@ -183,21 +146,28 @@ function selectBead(event) {
     return;
   }
 
+  let rosaryItem;
+  let originalColor;
+
+  console.log(`Active meshes: ${activeMeshes.length}`);
   if (activeMeshes.length > 0) {
     activeMeshes.forEach((mesh) => {
-      console.dir(mesh);
+      console.log(mesh.parent.type);
 
       if (mesh.parent.type == "Scene") {
-        let originalColor = rosaryItems.find(
+        originalColor = rosaryItems.find(
           (item) => item.uuid == mesh.uuid
         ).color;
+        console.log(`originalColor: ${originalColor}`);
+        console.log(originalColor);
         mesh.material.color.set(originalColor);
       }
 
       if (mesh.parent.type == "Group") {
-        let originalColor = rosaryItems.find(
+        originalColor = rosaryItems.find(
           (item) => item.uuid == mesh.parent.uuid
         ).color;
+        console.log(originalColor);
         mesh.material.color.set(originalColor);
       }
     });
@@ -232,7 +202,7 @@ function onPointerMove(event) {
 
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  console.log(pointer.x, pointer.y);
+  // console.log(pointer.x, pointer.y);
 }
 
 function insertItemIntoRosaryItems(
@@ -657,7 +627,6 @@ function insertBrownCross(scene) {
   crossGroup.position.set(0, -4.5, 0); // Center the group at the origin
   crossGroup.name = 0;
   scene.add(crossGroup);
-  console.dir(crossGroup);
   insertItemIntoRosaryItems(
     crossGroup.name,
     "Cross",
@@ -665,8 +634,7 @@ function insertBrownCross(scene) {
     crossGroup.uuid,
     true,
     crossColor
-  ); // Updated to use crossGroup.name
-
+  );
   return crossGroup;
 }
 
@@ -713,7 +681,6 @@ function drawCubicBezierCurve2D() {
   );
   const points = curveCubic.getPoints(50);
   const spacedPoints = curveCubic.getSpacedPoints(50);
-  console.log(spacedPoints);
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
   const material = new THREE.LineBasicMaterial({
     color: 0x00ff00,
@@ -733,7 +700,6 @@ function drawQuadraticBezierCurve2D() {
   );
 
   const spacedPoints = curveCubic.getSpacedPoints(50);
-  console.log(spacedPoints);
 }
 
 function drawQuadraticBezierCurve3D() {
@@ -744,7 +710,6 @@ function drawQuadraticBezierCurve3D() {
   );
 
   const spacedPoints = curveCubic.getSpacedPoints(50);
-  console.log(spacedPoints);
 }
 
 function insertBackgroundImage(scene) {
