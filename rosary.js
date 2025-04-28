@@ -18,6 +18,7 @@ let beadSmallColor = "#f0f2f5";
 let beadLargeColor = "#ff0000";
 beadLargeColor = "#0080FF";
 beadLargeColor = "#21A2FF";
+beadLargeColor = "#50ffb5";
 let crossColor = "#652500";
 let activeColor = "#00ff00";
 activeColor = "#FF2172";
@@ -28,7 +29,7 @@ const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let camera;
 let scene;
-let controls;
+let orbitControls;
 let controlsEnabled = true;
 let clickedBead = null;
 let rosaryBeads = [];
@@ -38,36 +39,25 @@ let activeMeshes = [];
 
 let currentState = {};
 let clearLocalStorage = true;
+let enableZoom = false;
+
+let offsetX = 0;
+let offsetY = 0;
+let offsetZ = 0;
 
 window.onload = function () {
+  createRosary();
+
   if (clearLocalStorage) {
     localStorage.clear();
+    selectBead(0);
   }
-
-  createRosary();
   window.addEventListener("mousemove", onPointerMove);
   window.addEventListener("click", clickBead);
 
-  selectBead(0);
-
-  let count = 0;
-  rosaryItems.forEach((item) => {
-    if (count >= 0 && count < rosaryItems.length) {
-      let objectUuid = scene.getObjectByProperty("uuid", item.uuid);
-
-      if (item.group) {
-        objectUuid.children.forEach((child) => {});
-      }
-
-      if (!item.group) {
-      }
-
-      count = count + 1;
-    }
-  });
-
   if (!checkStorage) {
     initializeStorage();
+    selectBead(0);
   }
 };
 
@@ -227,11 +217,13 @@ function setActiveBead(objectUuid) {
 
     objectUuid.material.color.set(activeColor);
     activeMeshes.push(objectUuid);
-    smoothZoomToUuid(objectUuid.uuid, camera, scene, controls, {
-      padding: 1.2,
-      duration: 1,
-      easing: "power3.inOut",
-    });
+    if (enableZoom) {
+      smoothZoomToUuid(objectUuid.uuid, camera, scene, orbitControls, {
+        padding: 1.2,
+        duration: 1,
+        easing: "power3.inOut",
+      });
+    }
   }
 
   return;
@@ -286,7 +278,9 @@ function createRosary() {
   const canvas = document.querySelector(".webgl");
 
   addOrbitControls(camera, canvas);
-  pointCamera(0, -2, 0);
+  moveCameraTo(0, 8, 50);
+  pointCameraTo(0, -1, 0);
+  // pointCameraTo(8, 8, 8);
 
   const renderer = new THREE.WebGLRenderer({ canvas });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -296,12 +290,11 @@ function createRosary() {
   window.addEventListener("resize", () => {
     camera.updateProjectionMatrix();
     camera.aspect = window.innerWidth / window.innerHeight;
-    renderer.setSize(window.innerWidth, window.innerHeight); // drawSphere();
+    renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
   const renderLoop = () => {
-    if (controlsEnabled) controls.update();
-    //selectBead();
+    if (controlsEnabled) orbitControls.update();
     renderer.render(scene, camera);
     window.requestAnimationFrame(renderLoop);
   };
@@ -320,9 +313,8 @@ function addCamera(scene) {
 
   camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 
-  camera.position.x = 0;
-  camera.position.y = 0;
-  camera.position.z = 10;
+  // moveCameraTo(0, 0, 50);
+  // pointCameraTo(0, 0, 0);
 
   scene.add(camera);
   return camera;
@@ -330,22 +322,30 @@ function addCamera(scene) {
 
 function addOrbitControls(camera, canvas) {
   if (controlsEnabled) {
-    controls = new OrbitControls(camera, canvas);
-    controls.enableDamping = true;
-    controls.enablePan = true;
-    controls.enableZoom = true;
-    controls.autoRotate = false;
-    controls.autoRotateSpeed = 5;
+    orbitControls = new OrbitControls(camera, canvas);
+    orbitControls.enableDamping = true;
+    orbitControls.enablePan = true;
+    orbitControls.enableZoom = true;
+    orbitControls.autoRotate = false;
+    orbitControls.autoRotateSpeed = 5;
     // controls.maxPolarAngle = Math.PI / 2;
     // controls.maxPolarAngle = Math.PI;
-    controls.minPolarAngle = THREE.MathUtils.degToRad(10); // limit vertical tilt
-    controls.maxPolarAngle = THREE.MathUtils.degToRad(180);
-    controls.target = new THREE.Vector3(0, -4, 0);
+    orbitControls.minPolarAngle = THREE.MathUtils.degToRad(10); // limit vertical tilt
+    orbitControls.maxPolarAngle = THREE.MathUtils.degToRad(180);
+    orbitControls.target = new THREE.Vector3(0, 0, 0);
   }
 }
 
-function pointCamera(x, y, z) {
-  camera.lookAt(x, y, z);
+function pointCameraTo(x, y, z) {
+  // camera.lookAt(x, y, z);
+  // camera.lookAt(new THREE.Vector3(x, y, z));
+  orbitControls.target = new THREE.Vector3(x, y, z);
+}
+
+function moveCameraTo(x, y, z) {
+  camera.position.x = x;
+  camera.position.y = y;
+  camera.position.z = z;
 }
 
 function insertLights(scene) {

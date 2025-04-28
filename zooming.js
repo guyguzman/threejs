@@ -40,7 +40,7 @@ export function smoothZoomToUuid(
   let dist = (maxDim * 0.5) / Math.tan(fovRad * 0.5);
   dist *= padding;
   dist = 0.6;
-  let zoomOutFactor = 7;
+  let zoomOutFactor = 10;
   dist = dist * zoomOutFactor; // extra space around object
 
   // keep current viewing direction:
