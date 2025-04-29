@@ -64,10 +64,13 @@ window.onload = function () {
     selectBead(0);
   }
 
-  if (!checkStorage) {
+  if (!checkStorageExists) {
     initializeStorage();
     selectBead(0);
   }
+
+  eventHandlers();
+  eventHandlersButtons();
 };
 
 function eventHandlers() {
@@ -97,29 +100,20 @@ function eventHandlersButtons() {
   elementButtonStart.addEventListener("click", function () {
     initializeStorage();
     selectBead(0);
+    console.log("Start Event");
   });
+
   elementButtonPrev.addEventListener("click", function () {
-    let currentState = getStorage();
-    let previousIndex = currentState.previousIndex;
-    let currentIndex = currentState.currentIndex;
-    let nextIndex = currentState.nextIndex;
-    if (currentIndex == 0) {
-      return;
-    }
-    selectBead(previousIndex);
+    selectPreviousBead();
   });
+
   elementButtonNext.addEventListener("click", function () {
-    let currentState = getStorage();
-    let previousIndex = currentState.previousIndex;
-    let currentIndex = currentState.currentIndex;
-    let nextIndex = currentState.nextIndex;
-    if (currentIndex == rosaryItems.length - 1) {
-      return;
-    }
-    selectBead(nextIndex);
+    selectNextBead();
   });
+
   elementButtonReset.addEventListener("click", function () {
     initializeStorage();
+    resetBeadsOriginalColors();
   });
 }
 
@@ -137,34 +131,26 @@ function setState() {}
 
 function setStorage(
   started = false,
-  previousIndex = 0,
   currentIndex = 0,
-  nextIndex = 0,
   lastIimeStamp = new Date()
 ) {
-  if (checkStorage()) {
+  if (checkStorageExists()) {
     let previousState = getStorage();
-    if (previousState.currentIndex == currentIndex) {
-      return;
-    }
-    previousIndex = previousState.currentIndex;
   }
 
   currentState = {
     started: started,
-    previousIndex: previousIndex,
     currentIndex: currentIndex,
-    nextIndex: currentIndex + 1,
     lastIimeStamp: lastIimeStamp,
   };
   localStorage.setItem("currentState", JSON.stringify(currentState));
 }
 
 function initializeStorage() {
-  setStorage();
+  setStorage(false, 0, new Date());
 }
 
-function checkStorage() {
+function checkStorageExists() {
   let currentStateJSON = localStorage.getItem("currentState");
   if (currentStateJSON == null) {
     return false;
@@ -206,36 +192,46 @@ function clickBead(event) {
   setActiveBead(objectUuid);
 }
 
+function selectNextBead() {
+  let storage = getStorage();
+  let currentIndex = storage.currentIndex;
+  let nextIndex = currentIndex + 1;
+  if (nextIndex > rosaryItems.length - 1) {
+    nextIndex = nextIndex;
+  }
+  let rosaryItem = rosaryItems[nextIndex];
+  let objectUuid = scene.getObjectByProperty("uuid", rosaryItem.uuid);
+  setActiveBead(objectUuid);
+  setStorage(true, nextIndex, new Date());
+  console.log(
+    `currentIndex: ${currentIndex} nextIndex: ${nextIndex}  rosaryItem: ${rosaryItem.name}`
+  );
+}
+
+function selectPreviousBead() {
+  let storage = getStorage();
+  let currentIndex = storage.currentIndex;
+  let previousIndex = currentIndex - 1;
+  if (previousIndex < 0) {
+    previousIndex = 0;
+  }
+  let rosaryItem = rosaryItems[previousIndex];
+  let objectUuid = scene.getObjectByProperty("uuid", rosaryItem.uuid);
+  setActiveBead(objectUuid);
+  setStorage(true, previousIndex, new Date());
+  console.log(
+    `currentIndex: ${currentIndex} previousIndex: ${previousIndex}  rosaryItem: ${rosaryItem.name}`
+  );
+}
+
 function selectBead(index = 0) {
   let rosaryItem = rosaryItems[index];
   let objectUuid = scene.getObjectByProperty("uuid", rosaryItem.uuid);
-  console.log(objectUuid);
   setActiveBead(objectUuid);
 }
 
 function setActiveBead(objectUuid) {
-  let rosaryItem;
-  let originalColor;
-
-  if (activeMeshes.length > 0) {
-    activeMeshes.forEach((mesh) => {
-      if (mesh.parent.type == "Scene") {
-        originalColor = rosaryItems.find(
-          (item) => item.uuid == mesh.uuid
-        ).color;
-        mesh.material.color.set(originalColor);
-      }
-
-      if (mesh.parent.type == "Group") {
-        originalColor = rosaryItems.find(
-          (item) => item.uuid == mesh.parent.uuid
-        ).color;
-        mesh.material.color.set(originalColor);
-      }
-    });
-
-    activeMeshes = [];
-  }
+  resetBeadsOriginalColors();
 
   let isCross = false;
   let crossGroup = null;
@@ -249,11 +245,7 @@ function setActiveBead(objectUuid) {
   if (objectUuid.parent.type == "Group") {
     isCross = true;
     crossGroup = objectUuid.parent;
-    console.log(crossGroup);
   }
-
-  console.log("made it here");
-  console.log(crossGroup);
 
   if (isCross) {
     let rosaryIndex = rosaryItems.findIndex(
@@ -275,7 +267,7 @@ function setActiveBead(objectUuid) {
       (item) => item.uuid == objectUuid.uuid
     );
     let rosaryItem = rosaryItems[rosaryIndex];
-    setStorage(true, 0, rosaryIndex, 0, new Date());
+    setStorage(true, rosaryIndex, new Date());
 
     objectUuid.material.color.set(activeColor);
     activeMeshes.push(objectUuid);
@@ -289,6 +281,29 @@ function setActiveBead(objectUuid) {
   }
 
   return;
+}
+
+function resetBeadsOriginalColors() {
+  let originalColor;
+  if (activeMeshes.length > 0) {
+    activeMeshes.forEach((mesh) => {
+      if (mesh.parent.type == "Scene") {
+        originalColor = rosaryItems.find(
+          (item) => item.uuid == mesh.uuid
+        ).color;
+        mesh.material.color.set(originalColor);
+      }
+
+      if (mesh.parent.type == "Group") {
+        originalColor = rosaryItems.find(
+          (item) => item.uuid == mesh.parent.uuid
+        ).color;
+        mesh.material.color.set(originalColor);
+      }
+    });
+
+    activeMeshes = [];
+  }
 }
 
 function onPointerMove(event) {
