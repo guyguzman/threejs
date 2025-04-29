@@ -4,7 +4,8 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { gsap } from "gsap";
 import { smoothZoomToUuid } from "./zooming";
-import { index, select } from "d3";
+import { createIcons, icons } from "lucide";
+import { resetWidthHeight } from "./utilities";
 
 let beadSmallRadius = 0.1;
 let beadLargeRadius = 0.15;
@@ -21,12 +22,13 @@ beadLargeColor = "#21A2FF";
 beadLargeColor = "#50ffb5";
 let crossColor = "#652500";
 let activeColor = "#00ff00";
-activeColor = "#FF2172";
+activeColor = "#ff65a3";
 let nextColor = "#E0FF21";
 let beadVeryLargeColor = beadSmallColor;
 
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
+const renderer = new THREE.WebGLRenderer({ canvas });
 let camera;
 let scene;
 let orbitControls;
@@ -38,14 +40,19 @@ let itemIndex = 0;
 let activeMeshes = [];
 
 let currentState = {};
-let clearLocalStorage = true;
+let clearLocalStorage = false;
 let enableZoom = false;
 
 let offsetX = 0;
 let offsetY = 0;
 let offsetZ = 0;
+let elementOverlayTopMessage = document.getElementById("overlayTopMessage");
 
 window.onload = function () {
+  let screenSize = resetWidthHeight();
+  elementOverlayTopMessage.innerHTML = `Width: ${screenSize.width}, Height: ${screenSize.height}`;
+
+  createIcons({ icons });
   createRosary();
 
   if (clearLocalStorage) {
@@ -54,6 +61,15 @@ window.onload = function () {
   }
   window.addEventListener("mousemove", onPointerMove);
   window.addEventListener("click", clickBead);
+  window.addEventListener("resize", () => {
+    screenSize = resetWidthHeight();
+    elementOverlayTopMessage.innerHTML = `Width: ${screenSize.width}, Height: ${screenSize.height}`;
+
+    createRosary();
+    camera.updateProjectionMatrix();
+    camera.aspect = window.innerWidth / window.innerHeight;
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
 
   if (!checkStorage) {
     initializeStorage();
@@ -282,16 +298,15 @@ function createRosary() {
   pointCameraTo(0, -1, 0);
   // pointCameraTo(8, 8, 8);
 
-  const renderer = new THREE.WebGLRenderer({ canvas });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(2);
   renderer.render(scene, camera);
 
-  window.addEventListener("resize", () => {
-    camera.updateProjectionMatrix();
-    camera.aspect = window.innerWidth / window.innerHeight;
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
+  // window.addEventListener("resize", () => {
+  //   camera.updateProjectionMatrix();
+  //   camera.aspect = window.innerWidth / window.innerHeight;
+  //   renderer.setSize(window.innerWidth, window.innerHeight);
+  // });
 
   const renderLoop = () => {
     if (controlsEnabled) orbitControls.update();
