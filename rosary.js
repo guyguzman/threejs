@@ -21,6 +21,7 @@ beadLargeColor = "#0080FF";
 beadLargeColor = "#21A2FF";
 beadLargeColor = "#50ffb5";
 let crossColor = "#652500";
+crossColor = "#a26f56";
 let activeColor = "#00ff00";
 activeColor = "#ff65a3";
 let nextColor = "#E0FF21";
@@ -47,10 +48,13 @@ let offsetX = 0;
 let offsetY = 0;
 let offsetZ = 0;
 let elementOverlayTopMessage = document.getElementById("overlayTopMessage");
+let elementButtonStart = document.getElementById("buttonStart");
+let elementButtonPrev = document.getElementById("buttonPrev");
+let elementButtonNext = document.getElementById("buttonNext");
+let elementButtonReset = document.getElementById("buttonReset");
 
 window.onload = function () {
   let screenSize = resetWidthHeight();
-  elementOverlayTopMessage.innerHTML = `Width: ${screenSize.width}, Height: ${screenSize.height}`;
 
   createIcons({ icons });
   createRosary();
@@ -59,23 +63,65 @@ window.onload = function () {
     localStorage.clear();
     selectBead(0);
   }
-  window.addEventListener("mousemove", onPointerMove);
-  window.addEventListener("click", clickBead);
-  window.addEventListener("resize", () => {
-    screenSize = resetWidthHeight();
-    elementOverlayTopMessage.innerHTML = `Width: ${screenSize.width}, Height: ${screenSize.height}`;
-
-    createRosary();
-    camera.updateProjectionMatrix();
-    camera.aspect = window.innerWidth / window.innerHeight;
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
 
   if (!checkStorage) {
     initializeStorage();
     selectBead(0);
   }
 };
+
+function eventHandlers() {
+  window.addEventListener("mousemove", onPointerMove);
+  window.addEventListener("click", clickBead);
+  window.addEventListener("resize", () => {
+    screenSize = resetWidthHeight();
+    createRosary();
+    camera.updateProjectionMatrix();
+    camera.aspect = window.innerWidth / window.innerHeight;
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+  screen.orientation.addEventListener("change", function () {
+    // Orientation has changed
+    const currentOrientation = screen.orientation.type; // e.g., "portrait-primary", "landscape-secondary"
+    const currentAngle = screen.orientation.angle; // e.g., 0, 90, -90, 180
+    screenSize = resetWidthHeight();
+    createRosary();
+    camera.updateProjectionMatrix();
+    camera.aspect = window.innerWidth / window.innerHeight;
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    console.log(currentOrientation, currentAngle);
+  });
+}
+
+function eventHandlersButtons() {
+  elementButtonStart.addEventListener("click", function () {
+    initializeStorage();
+    selectBead(0);
+  });
+  elementButtonPrev.addEventListener("click", function () {
+    let currentState = getStorage();
+    let previousIndex = currentState.previousIndex;
+    let currentIndex = currentState.currentIndex;
+    let nextIndex = currentState.nextIndex;
+    if (currentIndex == 0) {
+      return;
+    }
+    selectBead(previousIndex);
+  });
+  elementButtonNext.addEventListener("click", function () {
+    let currentState = getStorage();
+    let previousIndex = currentState.previousIndex;
+    let currentIndex = currentState.currentIndex;
+    let nextIndex = currentState.nextIndex;
+    if (currentIndex == rosaryItems.length - 1) {
+      return;
+    }
+    selectBead(nextIndex);
+  });
+  elementButtonReset.addEventListener("click", function () {
+    initializeStorage();
+  });
+}
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));

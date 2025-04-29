@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/manifest.json">
   <title>Rosary</title>
 </head>
 <style>
@@ -23,60 +24,37 @@
     box-sizing: border-box;
   }
 
-  #canvas {
-    position: absolute;
+  .containerCanvas {
     width: calc(var(--vw, 1vw) * 100);
-    height: calc(var(--vh, 1vh) * 100);
-    top: 0;
-    left: 0;
-  }
-
-  .overlay {
-    position: absolute;
-    width: calc(var(--vw, 1vw) * 100);
-    height: calc(var(--vh, 1vh) * 100);
-    display: grid;
-    grid-template-rows: 80vh 1fr;
-    top: 0;
-    left: 0;
-
-  }
-
-  .overlayTop {
-    display: flex;
-    justify-content: center;
-    align-items: start;
-    grid-row: 1;
-  }
-
-  .overlayTopMessage {
-    width: 500px;
-    color: white;
-    height: 50px;
-    background-color: #202426;
-    border-radius: 5px;
-    padding: 10px;
-    text-align: center;
-  }
-
-  .overlayBottom {
     width: 100%;
-    height: 100%;
-    display: flex;
+    height: calc(var(--vh, 1vh) * 80);
+    /* display: flex;
     justify-content: center;
-    align-items: center;
-    grid-row: 2;
-    background-color: orange;
+    align-items: center; */
+  }
+
+  .webgl {}
+
+  .container {
+    width: calc(var(--vw, 1vw) * 100);
+    width: 100%;
+    height: calc(var(--vh, 1vh) * 100);
+    display: flex;
+    flex-direction: column;
+  }
+
+  #canvas {
+    width: 100%;
   }
 
   .controls {
     display: flex;
     justify-content: center;
     align-content: start;
-    width: 100%;
-    height: 100%;
+    width: calc(var(--vw, 1vw) * 100);
+    height: calc(var(--vh, 1vh) * 20);
     gap: 20px;
-    padding: 10px;
+    z-index: 90;
   }
 
   .button {
@@ -87,23 +65,25 @@
     height: 30%;
     color: #808285;
     background-color: #202426;
-    ;
+    display: grid;
+    place-items: center;
+    font-size: 16px;
   }
 </style>
 
 <body>
-  <canvas id="canvas" class="webgl"></canvas>
-  <div class="overlay">
-    <div id="overlayTop" class="overlayTop">
-      <div id="overlayTopMessage" class="overlayTopMessage"></div>
+
+  <div class="container">
+
+    <div class="containerCanvas">
+      <canvas id="canvas" class="webgl"></canvas>
     </div>
-    <div id="overlayBottom" class="overlayBottom">
-      <div class="controls">
-        <button class="button" id="startButton">Start</button>
-        <button class="button" id="prevButton">Prev</button>
-        <button class="button" id="nextButton">Next</button>
-        <button class="button" id="resetButton">Reset</button>
-      </div>
+
+    <div class="controls">
+      <button class="button" id="buttonStart">Start</button>
+      <button class="button" id="buttonPrev">Prev</button>
+      <button class="button" id="buttonNext">Next</button>
+      <button class="button" id="buttonReset">Reset</button>
     </div>
   </div>
   <script type="module" src="/rosary.js"></script>
