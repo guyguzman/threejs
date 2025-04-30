@@ -39,7 +39,7 @@
   .containerCanvas {
     width: calc(var(--vw, 1vw) * 100);
     width: 100%;
-    height: calc(var(--vh, 1vh) * 75);
+    height: calc(var(--vh, 1vh) * 74);
   }
 
   .webgl {}
@@ -52,12 +52,13 @@
     display: flex;
     justify-content: center;
     align-content: start;
+    flex-wrap: wrap;
     width: calc(var(--vw, 1vw) * 100);
-    height: calc(var(--vh, 1vh) * 25);
-    gap: 20px;
+    height: calc(var(--vh, 1vh) * 26);
+    gap: 12px;
     z-index: 90;
     background-color: #101416;
-    padding-top: 20px;
+    padding-top: 10px;
   }
 
   .button {
@@ -67,11 +68,14 @@
     max-width: 120px;
     height: 30%;
     max-height: 40px;
-    color: #808285;
+    color: #b0b2b5;
     background-color: #202426;
     display: grid;
     place-items: center;
-    font-size: 16px;
+    font-size: 14px;
+    padding: 0;
+    border-color: red;
+    ;
   }
 
   .message {}
@@ -86,10 +90,16 @@
     </div>
 
     <div class="containerControls">
-      <button class="button" id="buttonStart">Start</button>
-      <button class="button" id="buttonPrev">Prev</button>
-      <button class="button" id="buttonNext">Next</button>
-      <button class="button" id="buttonReset">Reset</button>
+      <div class="button" id="buttonStart">Start</div>
+      <div class="button" id="buttonPrev">Prev</div>
+      <div class="button" id="buttonNext">Next</div>
+      <div class="button" id="buttonReset">Reset</div>
+      <div class="button" id="buttonZoomIn">Zoom In</div>
+      <div class="button" id="buttonZoomOut">Zoom Out</div>
+      <div class="button" id="buttonA">Zoom In</div>
+      <div class="button" id="buttonB">Zoom Out</div>
+      <div class="button" id="buttonC">Zoom In</div>
+      <div class="button" id="buttonD">Zoom Out</div>
     </div>
   </div>
   <script type="module" src="/rosary.js"></script>

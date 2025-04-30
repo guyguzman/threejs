@@ -56,6 +56,8 @@ let elementButtonStart = document.getElementById("buttonStart");
 let elementButtonPrev = document.getElementById("buttonPrev");
 let elementButtonNext = document.getElementById("buttonNext");
 let elementButtonReset = document.getElementById("buttonReset");
+let elementButtonZoomOut = document.getElementById("buttonZoomOut");
+let elementButtonZoomIn = document.getElementById("buttonZoomIn");
 
 window.onload = function () {
   let screenSize = resetWidthHeight();
@@ -126,6 +128,13 @@ function eventHandlersButtons() {
     initializeStorage();
     resetBeadsOriginalColors();
     // camera = getStorageItem("perspectiveCamera");
+  });
+
+  elementButtonZoomIn.addEventListener("click", function () {});
+
+  elementButtonZoomOut.addEventListener("click", function () {
+    let perspectiveCamera = getStorageItem("perspectiveCamera");
+    console.log("perspectiveCamera", perspectiveCamera);
   });
 }
 
