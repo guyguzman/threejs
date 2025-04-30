@@ -6,9 +6,11 @@ import { gsap } from "gsap";
 import { smoothZoomToUuid } from "./zooming";
 import { createIcons, icons } from "lucide";
 import { resetWidthHeight } from "./utilities";
+import { zoom } from "d3";
+import { update } from "three/examples/jsm/libs/tween.module.js";
 
 let beadSmallRadius = 0.15;
-let beadLargeRadius = 0.2;
+let beadLargeRadius = 0.18;
 let beadVeryLargeRadius = 0.25;
 let beadRoughness = 0.5;
 let chainRoughness = 0;
@@ -42,8 +44,9 @@ let itemIndex = 0;
 let activeMeshes = [];
 
 let currentState = {};
+let currentStateJSON = null;
 let clearLocalStorage = false;
-let enableZoom = false;
+let enableZoomToBead = true;
 
 let offsetX = 0;
 let offsetY = 0;
@@ -61,23 +64,20 @@ window.onload = function () {
   createRosary();
 
   if (clearLocalStorage) {
-    localStorage.clear();
-    selectBead(0);
+    clearStorage();
   }
 
-  if (!checkStorageExists) {
+  if (!checkStorageExists()) {
     initializeStorage();
-    selectBead(0);
+    updateStorageCurrentIndex(0);
   }
 
-  if (checkStorageExists) {
+  if (checkStorageExists()) {
     let currentStateJSON = localStorage.getItem("currentState");
     currentState = JSON.parse(currentStateJSON);
-    console.log(currentState);
+    console.log("currentState", currentState);
     if (currentState.started) {
       selectBead(currentState.currentIndex);
-    } else {
-      selectBead(0);
     }
   }
 
@@ -104,7 +104,6 @@ function eventHandlers() {
     camera.updateProjectionMatrix();
     camera.aspect = window.innerWidth / window.innerHeight;
     renderer.setSize(window.innerWidth, window.innerHeight);
-    console.log(currentOrientation, currentAngle);
   });
 }
 
@@ -112,7 +111,7 @@ function eventHandlersButtons() {
   elementButtonStart.addEventListener("click", function () {
     initializeStorage();
     selectBead(0);
-    console.log("Start Event");
+    updateStorageStarted(true);
   });
 
   elementButtonPrev.addEventListener("click", function () {
@@ -126,6 +125,7 @@ function eventHandlersButtons() {
   elementButtonReset.addEventListener("click", function () {
     initializeStorage();
     resetBeadsOriginalColors();
+    // camera = getStorageItem("perspectiveCamera");
   });
 }
 
@@ -144,6 +144,9 @@ function setState() {}
 function setStorage(
   started = false,
   currentIndex = 0,
+  zoomEnabled = false,
+  cameraSettings = cameraSettings,
+  camera = null,
   lastIimeStamp = new Date()
 ) {
   if (checkStorageExists()) {
@@ -153,13 +156,64 @@ function setStorage(
   currentState = {
     started: started,
     currentIndex: currentIndex,
+    zoomEnabled: zoomEnabled,
+    originalCameraSettings: cameraSettings,
+    camera: camera,
     lastIimeStamp: lastIimeStamp,
   };
   localStorage.setItem("currentState", JSON.stringify(currentState));
 }
 
-function initializeStorage() {
-  setStorage(false, 0, new Date());
+async function updateStoragePerspectiveCamera() {
+  updateStorageItem("perspectiveCamera", camera);
+}
+
+async function updateStorageCurrentIndex(index) {
+  updateStorageItem("currentIndex", index);
+}
+async function updateStorageCameraSettings() {
+  updateStorageItem("cameraSettings", getCameraSettings());
+}
+
+async function updateStorageZoomEnaabled(zoomEnabled) {
+  updateStorageItem("zoomEnabled", zoomEnabled);
+}
+
+async function updateStorageDateTime() {
+  updateStorageItem("lastIimeStamp", new Date());
+}
+
+async function updateStorageStarted(started) {
+  updateStorageItem("started", started);
+}
+
+async function getStorageItem(property) {
+  if (checkStorageExists()) {
+    currentStateJSON = localStorage.getItem("currentState");
+    currentState = JSON.parse(currentStateJSON);
+    return currentState[property];
+  } else {
+    return null;
+  }
+}
+
+async function updateStorageItem(property, value) {
+  if (checkStorageExists()) {
+    currentStateJSON = localStorage.getItem("currentState");
+    currentState = JSON.parse(currentStateJSON);
+  }
+  currentState[property] = value;
+  currentState.lastIimeStamp = new Date();
+  localStorage.setItem("currentState", JSON.stringify(currentState));
+}
+
+async function initializeStorage() {
+  updateStorageStarted(false);
+  updateStorageCurrentIndex(0);
+  updateStorageCameraSettings(getCameraSettings());
+  updateStoragePerspectiveCamera();
+  updateStorageZoomEnaabled(false);
+  updateStorageDateTime();
 }
 
 function checkStorageExists() {
@@ -204,7 +258,7 @@ function clickBead(event) {
   setActiveBead(objectUuid);
 }
 
-function selectNextBead() {
+async function selectNextBead() {
   let storage = getStorage();
   let currentIndex = storage.currentIndex;
   let nextIndex = currentIndex + 1;
@@ -214,13 +268,10 @@ function selectNextBead() {
   let rosaryItem = rosaryItems[nextIndex];
   let objectUuid = scene.getObjectByProperty("uuid", rosaryItem.uuid);
   setActiveBead(objectUuid);
-  setStorage(true, nextIndex, new Date());
-  console.log(
-    `currentIndex: ${currentIndex} nextIndex: ${nextIndex}  rosaryItem: ${rosaryItem.name}`
-  );
+  updateStorageCurrentIndex(nextIndex);
 }
 
-function selectPreviousBead() {
+async function selectPreviousBead() {
   let storage = getStorage();
   let currentIndex = storage.currentIndex;
   let previousIndex = currentIndex - 1;
@@ -230,19 +281,16 @@ function selectPreviousBead() {
   let rosaryItem = rosaryItems[previousIndex];
   let objectUuid = scene.getObjectByProperty("uuid", rosaryItem.uuid);
   setActiveBead(objectUuid);
-  setStorage(true, previousIndex, new Date());
-  console.log(
-    `currentIndex: ${currentIndex} previousIndex: ${previousIndex}  rosaryItem: ${rosaryItem.name}`
-  );
+  updateStorageCurrentIndex(previousIndex);
 }
 
-function selectBead(index = 0) {
+async function selectBead(index = 0) {
   let rosaryItem = rosaryItems[index];
   let objectUuid = scene.getObjectByProperty("uuid", rosaryItem.uuid);
   setActiveBead(objectUuid);
 }
 
-function setActiveBead(objectUuid) {
+async function setActiveBead(objectUuid) {
   resetBeadsOriginalColors();
 
   let isCross = false;
@@ -251,7 +299,6 @@ function setActiveBead(objectUuid) {
   if (objectUuid.children.length > 0) {
     isCross = true;
     crossGroup = objectUuid;
-    console.log(crossGroup);
   }
 
   if (objectUuid.parent.type == "Group") {
@@ -263,15 +310,14 @@ function setActiveBead(objectUuid) {
     let rosaryIndex = rosaryItems.findIndex(
       (item) => item.uuid == crossGroup.uuid
     );
-    console.log(rosaryIndex);
     let rosaryItem = rosaryItems[rosaryIndex];
-    setStorage(true, 0, rosaryIndex, 0, new Date());
+    updateStorageCurrentIndex(rosaryIndex);
     let crossGroupChildren = crossGroup.children;
-    console.log(crossGroupChildren);
     activeMeshes.push(crossGroupChildren[0]);
     activeMeshes.push(crossGroupChildren[1]);
     crossGroupChildren[0].material.color.set(activeColor);
     crossGroupChildren[1].material.color.set(activeColor);
+    zoomToBead(crossGroup);
   }
 
   if (!isCross && objectUuid.parent.type == "Scene") {
@@ -279,22 +325,69 @@ function setActiveBead(objectUuid) {
       (item) => item.uuid == objectUuid.uuid
     );
     let rosaryItem = rosaryItems[rosaryIndex];
-    setStorage(true, rosaryIndex, new Date());
+    updateStorageCurrentIndex(rosaryIndex);
 
     objectUuid.material.color.set(activeColor);
     activeMeshes.push(objectUuid);
-    if (enableZoom) {
-      smoothZoomToUuid(objectUuid.uuid, camera, scene, orbitControls, {
-        padding: 1.2,
-        duration: 1,
-        easing: "power3.inOut",
-      });
-    }
+    zoomToBead(objectUuid);
   }
 
   return;
 }
 
+function getCameraSettings() {
+  let cameraPosition = new THREE.Vector3(
+    camera.position.x,
+    camera.position.y,
+    camera.position.z
+  );
+  let cameraRotation = new THREE.Quaternion(
+    camera.quaternion.x,
+    camera.quaternion.y,
+    camera.quaternion.z,
+    camera.quaternion.w
+  );
+  let cameraZoom = camera.zoom;
+  let cameraTarget = orbitControls.target;
+  let cameraFov = camera.fov;
+  let cameraAspect = camera.aspect;
+  let cameraNear = camera.near;
+  let cameraFar = camera.far;
+  let cameraProjectionMatrix = camera.projectionMatrix;
+  let cameraProjectionMatrixInverse = camera.projectionMatrixInverse;
+  let cameraSettings = {
+    cameraPosition,
+    cameraRotation,
+    cameraZoom,
+    cameraTarget,
+    cameraFov,
+    cameraAspect,
+    cameraNear,
+    cameraFar,
+    cameraProjectionMatrix,
+    cameraProjectionMatrixInverse,
+  };
+  return cameraSettings;
+}
+
+function zoomToBead(objectUuid) {
+  const startPos = camera.position.clone();
+  const startQuat = camera.quaternion.clone();
+  const center = new THREE.Vector3();
+  const size = new THREE.Vector3();
+  const box = new THREE.Box3().setFromObject(objectUuid);
+  box.getCenter(center);
+  box.getSize(size);
+  const distance = size.length() * 0.5;
+
+  if (enableZoomToBead) {
+    smoothZoomToUuid(objectUuid.uuid, camera, scene, orbitControls, {
+      padding: 1.2,
+      duration: 1,
+      easing: "power3.inOut",
+    });
+  }
+}
 function resetBeadsOriginalColors() {
   let originalColor;
   if (activeMeshes.length > 0) {
@@ -323,7 +416,6 @@ function onPointerMove(event) {
 
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  // console.log(pointer.x, pointer.y);
 }
 
 function insertItemIntoRosaryItems(
