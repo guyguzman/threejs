@@ -14,7 +14,7 @@
   body {
     margin: 0;
     padding: 0;
-    background-color: black;
+    background-color: red;
     ;
   }
 
@@ -24,37 +24,37 @@
     box-sizing: border-box;
   }
 
-  .containerCanvas {
-    width: calc(var(--vw, 1vw) * 100);
-    width: 100%;
-    height: calc(var(--vh, 1vh) * 80);
-    /* display: flex;
-    justify-content: center;
-    align-items: center; */
-  }
-
-  .webgl {}
-
   .container {
     width: calc(var(--vw, 1vw) * 100);
     width: 100%;
     height: calc(var(--vh, 1vh) * 100);
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
   }
+
+  .containerCanvas {
+    width: calc(var(--vw, 1vw) * 100);
+    width: 100%;
+    height: calc(var(--vh, 1vh) * 75);
+  }
+
+  .webgl {}
 
   #canvas {
     width: 100%;
   }
 
-  .controls {
+  .containerControls {
     display: flex;
     justify-content: center;
     align-content: start;
     width: calc(var(--vw, 1vw) * 100);
-    height: calc(var(--vh, 1vh) * 20);
+    height: calc(var(--vh, 1vh) * 25);
     gap: 20px;
     z-index: 90;
+    background-color: #101416;
+    padding-top: 20px;
   }
 
   .button {
@@ -69,6 +69,8 @@
     place-items: center;
     font-size: 16px;
   }
+
+  .message {}
 </style>
 
 <body>
@@ -79,7 +81,7 @@
       <canvas id="canvas" class="webgl"></canvas>
     </div>
 
-    <div class="controls">
+    <div class="containerControls">
       <button class="button" id="buttonStart">Start</button>
       <button class="button" id="buttonPrev">Prev</button>
       <button class="button" id="buttonNext">Next</button>

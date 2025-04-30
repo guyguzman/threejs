@@ -7,8 +7,8 @@ import { smoothZoomToUuid } from "./zooming";
 import { createIcons, icons } from "lucide";
 import { resetWidthHeight } from "./utilities";
 
-let beadSmallRadius = 0.1;
-let beadLargeRadius = 0.15;
+let beadSmallRadius = 0.15;
+let beadLargeRadius = 0.2;
 let beadVeryLargeRadius = 0.25;
 let beadRoughness = 0.5;
 let chainRoughness = 0;
@@ -24,6 +24,7 @@ let crossColor = "#652500";
 crossColor = "#a26f56";
 let activeColor = "#00ff00";
 activeColor = "#ff65a3";
+activeColor = "#ff0000";
 let nextColor = "#E0FF21";
 let beadVeryLargeColor = beadSmallColor;
 
@@ -67,6 +68,17 @@ window.onload = function () {
   if (!checkStorageExists) {
     initializeStorage();
     selectBead(0);
+  }
+
+  if (checkStorageExists) {
+    let currentStateJSON = localStorage.getItem("currentState");
+    currentState = JSON.parse(currentStateJSON);
+    console.log(currentState);
+    if (currentState.started) {
+      selectBead(currentState.currentIndex);
+    } else {
+      selectBead(0);
+    }
   }
 
   eventHandlers();
@@ -351,13 +363,11 @@ function createRosary() {
   insertLights(scene);
 
   let camera = addCamera(scene);
-
   const canvas = document.querySelector(".webgl");
 
   addOrbitControls(camera, canvas);
-  moveCameraTo(0, 8, 50);
+  moveCameraTo(0, 0, 50);
   pointCameraTo(0, -1, 0);
-  // pointCameraTo(8, 8, 8);
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(2);
@@ -389,9 +399,6 @@ function addCamera(scene) {
 
   camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 
-  // moveCameraTo(0, 0, 50);
-  // pointCameraTo(0, 0, 0);
-
   scene.add(camera);
   return camera;
 }
@@ -409,12 +416,13 @@ function addOrbitControls(camera, canvas) {
     orbitControls.minPolarAngle = THREE.MathUtils.degToRad(10); // limit vertical tilt
     orbitControls.maxPolarAngle = THREE.MathUtils.degToRad(180);
     orbitControls.target = new THREE.Vector3(0, 0, 0);
+    orbitControls.enablePan = false;
+    orbitControls.enableRotate = false;
+    orbitControls.enableZoom = false;
   }
 }
 
 function pointCameraTo(x, y, z) {
-  // camera.lookAt(x, y, z);
-  // camera.lookAt(new THREE.Vector3(x, y, z));
   orbitControls.target = new THREE.Vector3(x, y, z);
 }
 
