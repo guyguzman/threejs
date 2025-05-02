@@ -75,7 +75,16 @@
     font-size: 14px;
     padding: 0;
     border-color: red;
-    ;
+    -webkit-user-select: none;
+    /* Safari */
+    -ms-user-select: none;
+    /* IE 10 and Edge */
+    user-select: none;
+    /* Standard syntax */
+  }
+
+  .button:hover {
+    cursor: pointer;
   }
 
   .message {}
@@ -96,10 +105,10 @@
       <div class="button" id="buttonReset">Reset</div>
       <div class="button" id="buttonZoomIn">Zoom In</div>
       <div class="button" id="buttonZoomOut">Zoom Out</div>
-      <div class="button" id="buttonA">Zoom In</div>
-      <div class="button" id="buttonB">Zoom Out</div>
-      <div class="button" id="buttonC">Zoom In</div>
-      <div class="button" id="buttonD">Zoom Out</div>
+      <!-- <div class="button" id="button1">Extra 1</div>
+      <div class="button" id="button2">Extra 2</div>
+      <div class="button" id="button3">Extra 3</div>
+      <div class="button" id="button4">Extra 4</div> -->
     </div>
   </div>
   <script type="module" src="/rosary.js"></script>

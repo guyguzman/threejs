@@ -37,6 +37,10 @@ let camera;
 let scene;
 let orbitControls;
 let controlsEnabled = true;
+let savedCameraPosition;
+let savedCameraQuaternion;
+let savedControlsTarget;
+
 let clickedBead = null;
 let rosaryBeads = [];
 let rosaryItems = [];
@@ -45,7 +49,7 @@ let activeMeshes = [];
 
 let currentState = {};
 let currentStateJSON = null;
-let clearLocalStorage = false;
+let clearLocalStorage = true;
 let enableZoomToBead = true;
 
 let offsetX = 0;
@@ -109,11 +113,14 @@ function eventHandlers() {
   });
 }
 
-function eventHandlersButtons() {
+async function eventHandlersButtons() {
   elementButtonStart.addEventListener("click", function () {
     initializeStorage();
+    resetBeadsOriginalColors();
     selectBead(0);
     updateStorageStarted(true);
+    updateStorageZoomEnabled(false);
+    updateStorageDateTime();
   });
 
   elementButtonPrev.addEventListener("click", function () {
@@ -124,17 +131,22 @@ function eventHandlersButtons() {
     selectNextBead();
   });
 
-  elementButtonReset.addEventListener("click", function () {
-    initializeStorage();
+  elementButtonReset.addEventListener("click", async function () {
+    console.log("reset");
     resetBeadsOriginalColors();
-    // camera = getStorageItem("perspectiveCamera");
+    await restoreCameraSettings();
+    await initializeStorage();
   });
 
-  elementButtonZoomIn.addEventListener("click", function () {});
+  elementButtonZoomIn.addEventListener("click", async function () {
+    await updateStorageItem("zoomEnabled", true);
+    let currentIndex = await getStorageItemCurrentIndex();
+    selectBead(currentIndex);
+  });
 
-  elementButtonZoomOut.addEventListener("click", function () {
-    let perspectiveCamera = getStorageItem("perspectiveCamera");
-    console.log("perspectiveCamera", perspectiveCamera);
+  elementButtonZoomOut.addEventListener("click", async function () {
+    await restoreCameraSettings();
+    updateStorageItem("zoomEnabled", false);
   });
 }
 
@@ -174,17 +186,43 @@ function setStorage(
 }
 
 async function updateStoragePerspectiveCamera() {
-  updateStorageItem("perspectiveCamera", camera);
+  savedCameraPosition = camera.position.clone();
+  savedCameraQuaternion = camera.quaternion.clone();
+  updateStorageItem("perspectiveCameraPosition", savedCameraPosition);
+  updateStorageItem("perspectiveCameraQuaternion", savedCameraQuaternion);
+  if (orbitControls && orbitControls.target) {
+    savedControlsTarget = orbitControls.target.clone();
+    updateStorageItem("perspectiveControlsTarget", savedControlsTarget);
+  }
+}
+
+async function restoreCameraSettings() {
+  savedCameraPosition = await getStorageItem("perspectiveCameraPosition");
+  savedCameraQuaternion = await getStorageItem("perspectiveCameraQuaternion");
+  savedControlsTarget = await getStorageItem("perspectiveControlsTarget");
+
+  if (savedCameraPosition && savedCameraQuaternion) {
+    // console.log("savedCameraPosition", savedCameraPosition);
+    // console.log("savedCameraQuaternion", savedCameraQuaternion);
+    camera.position.copy(savedCameraPosition);
+    camera.quaternion.copy(savedCameraQuaternion);
+  }
+
+  if (orbitControls && orbitControls.target && savedControlsTarget) {
+    // console.log("orbitControls", orbitControls);
+    // console.log("savedControlsTarget", savedControlsTarget);
+    // console.log("orbitControls.target", orbitControls.target);
+    orbitControls.target.copy(savedControlsTarget);
+    orbitControls.update();
+  } else if (controls && controls.target) {
+  }
 }
 
 async function updateStorageCurrentIndex(index) {
   updateStorageItem("currentIndex", index);
 }
-async function updateStorageCameraSettings() {
-  updateStorageItem("cameraSettings", getCameraSettings());
-}
 
-async function updateStorageZoomEnaabled(zoomEnabled) {
+async function updateStorageZoomEnabled(zoomEnabled) {
   updateStorageItem("zoomEnabled", zoomEnabled);
 }
 
@@ -206,12 +244,19 @@ async function getStorageItem(property) {
   }
 }
 
+async function getStorageItemCurrentIndex() {
+  let storage = getStorage();
+  return storage.currentIndex;
+}
+
 async function updateStorageItem(property, value) {
   if (checkStorageExists()) {
-    currentStateJSON = localStorage.getItem("currentState");
-    currentState = JSON.parse(currentStateJSON);
+    currentState = JSON.parse(localStorage.getItem("currentState"));
   }
   currentState[property] = value;
+  if (property == "perspectiveCamera") {
+    console.log("updateStorageItem", "test", value);
+  }
   currentState.lastIimeStamp = new Date();
   localStorage.setItem("currentState", JSON.stringify(currentState));
 }
@@ -219,9 +264,8 @@ async function updateStorageItem(property, value) {
 async function initializeStorage() {
   updateStorageStarted(false);
   updateStorageCurrentIndex(0);
-  updateStorageCameraSettings(getCameraSettings());
   updateStoragePerspectiveCamera();
-  updateStorageZoomEnaabled(false);
+  updateStorageZoomEnabled(false);
   updateStorageDateTime();
 }
 
@@ -272,7 +316,7 @@ async function selectNextBead() {
   let currentIndex = storage.currentIndex;
   let nextIndex = currentIndex + 1;
   if (nextIndex > rosaryItems.length - 1) {
-    nextIndex = nextIndex;
+    nextIndex = currentIndex;
   }
   let rosaryItem = rosaryItems[nextIndex];
   let objectUuid = scene.getObjectByProperty("uuid", rosaryItem.uuid);
@@ -300,6 +344,8 @@ async function selectBead(index = 0) {
 }
 
 async function setActiveBead(objectUuid) {
+  let zoomEnabled = await getStorageItem("zoomEnabled");
+
   resetBeadsOriginalColors();
 
   let isCross = false;
@@ -326,7 +372,9 @@ async function setActiveBead(objectUuid) {
     activeMeshes.push(crossGroupChildren[1]);
     crossGroupChildren[0].material.color.set(activeColor);
     crossGroupChildren[1].material.color.set(activeColor);
-    zoomToBead(crossGroup);
+    if (zoomEnabled) {
+      zoomToBead(crossGroup);
+    }
   }
 
   if (!isCross && objectUuid.parent.type == "Scene") {
@@ -335,10 +383,11 @@ async function setActiveBead(objectUuid) {
     );
     let rosaryItem = rosaryItems[rosaryIndex];
     updateStorageCurrentIndex(rosaryIndex);
-
     objectUuid.material.color.set(activeColor);
     activeMeshes.push(objectUuid);
-    zoomToBead(objectUuid);
+    if (zoomEnabled) {
+      zoomToBead(objectUuid);
+    }
   }
 
   return;
