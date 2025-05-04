@@ -49,7 +49,7 @@ let activeMeshes = [];
 
 let currentState = {};
 let currentStateJSON = null;
-let clearLocalStorage = true;
+let clearLocalStorage = false;
 let enableZoomToBead = true;
 
 let offsetX = 0;
