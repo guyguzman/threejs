@@ -49,7 +49,7 @@ let activeMeshes = [];
 
 let currentState = {};
 let currentStateJSON = null;
-let clearLocalStorage = true;
+let clearLocalStorage = false;
 let enableZoomToBead = true;
 
 let offsetX = 0;
@@ -93,6 +93,30 @@ window.onload = function () {
 function eventHandlers() {
   window.addEventListener("mousemove", onPointerMove);
   window.addEventListener("click", clickBead);
+
+  let lastTapTime = 0;
+  const doubleTapThreshold = 300; // Time in milliseconds between taps to be considered a double-tap
+
+  window.addEventListener("touchend", function (event) {
+    const currentTime = new Date().getTime();
+    const tapDelay = currentTime - lastTapTime;
+
+    if (tapDelay < doubleTapThreshold && tapDelay > 0) {
+      // This is a double-tap
+      console.log("Double-tapped!");
+      selectNextBead();
+      // Add your double-tap handling code here
+      // For example:
+      // targetElement.classList.toggle('highlight');
+      event.preventDefault(); // Prevent the default action (like zooming)
+    } else {
+      // This is the first tap or a tap that is too slow to be a double-tap
+      console.log("Single tap or start of a potential double-tap");
+    }
+
+    lastTapTime = currentTime;
+  });
+
   window.addEventListener("resize", () => {
     screenSize = resetWidthHeight();
     createRosary();
