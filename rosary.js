@@ -4,10 +4,10 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { gsap } from "gsap";
 import { smoothZoomToUuid } from "./zooming";
-import { createIcons, icons } from "lucide";
+import { createElement, createIcons, icons } from "lucide";
 import { resetWidthHeight } from "./utilities";
-import { zoom } from "d3";
-import { update } from "three/examples/jsm/libs/tween.module.js";
+// import { zoom } from "d3";
+// import { update } from "three/examples/jsm/libs/tween.module.js";
 
 let beadSmallRadius = 0.15;
 let beadLargeRadius = 0.18;
@@ -49,7 +49,7 @@ let activeMeshes = [];
 
 let currentState = {};
 let currentStateJSON = null;
-let clearLocalStorage = false;
+let clearLocalStorage = true;
 let enableZoomToBead = true;
 
 let offsetX = 0;
@@ -65,7 +65,6 @@ let elementButtonZoomIn = document.getElementById("buttonZoomIn");
 
 window.onload = function () {
   let screenSize = resetWidthHeight();
-
   createIcons({ icons });
   createRosary();
 
@@ -81,8 +80,7 @@ window.onload = function () {
   if (checkStorageExists()) {
     let currentStateJSON = localStorage.getItem("currentState");
     currentState = JSON.parse(currentStateJSON);
-    console.log("currentState", currentState);
-    if (currentState.started) {
+    if (currentState.started || !currentState.started) {
       selectBead(currentState.currentIndex);
     }
   }
@@ -114,14 +112,14 @@ function eventHandlers() {
 }
 
 async function eventHandlersButtons() {
-  elementButtonStart.addEventListener("click", function () {
-    initializeStorage();
-    resetBeadsOriginalColors();
-    selectBead(0);
-    updateStorageStarted(true);
-    updateStorageZoomEnabled(false);
-    updateStorageDateTime();
-  });
+  // elementButtonStart.addEventListener("click", function () {
+  //   initializeStorage();
+  //   resetBeadsOriginalColors();
+  //   selectBead(0);
+  //   updateStorageStarted(true);
+  //   updateStorageZoomEnabled(false);
+  //   updateStorageDateTime();
+  // });
 
   elementButtonPrev.addEventListener("click", function () {
     selectPreviousBead();
@@ -132,7 +130,6 @@ async function eventHandlersButtons() {
   });
 
   elementButtonReset.addEventListener("click", async function () {
-    console.log("reset");
     resetBeadsOriginalColors();
     await restoreCameraSettings();
     await initializeStorage();
@@ -255,7 +252,6 @@ async function updateStorageItem(property, value) {
   }
   currentState[property] = value;
   if (property == "perspectiveCamera") {
-    console.log("updateStorageItem", "test", value);
   }
   currentState.lastIimeStamp = new Date();
   localStorage.setItem("currentState", JSON.stringify(currentState));
@@ -267,6 +263,7 @@ async function initializeStorage() {
   updateStoragePerspectiveCamera();
   updateStorageZoomEnabled(false);
   updateStorageDateTime();
+  selectBead(0);
 }
 
 function checkStorageExists() {
@@ -339,6 +336,7 @@ async function selectPreviousBead() {
 
 async function selectBead(index = 0) {
   let rosaryItem = rosaryItems[index];
+  console.log(rosaryItems);
   let objectUuid = scene.getObjectByProperty("uuid", rosaryItem.uuid);
   setActiveBead(objectUuid);
 }
@@ -479,6 +477,7 @@ function onPointerMove(event) {
 function insertItemIntoRosaryItems(
   name,
   description,
+  prayers,
   itemIndex,
   uuid,
   group,
@@ -487,12 +486,14 @@ function insertItemIntoRosaryItems(
   let arrayItem = {
     name: name,
     description: description,
+    prayers: prayers,
     itemIndex: itemIndex,
     uuid: uuid,
     group: group,
     color: color,
   };
   rosaryItems.push(arrayItem);
+  console.log(arrayItem);
 }
 
 function createRosary() {
@@ -712,10 +713,20 @@ function insertLoopBeads(spacedPoints, scene) {
     let beadColor = beadSmallColor;
     itemIndex = itemIndex + 1;
     description = "HailMary";
+    let prayers = [{ prayer: "Hail Mary" }];
+    let threePrayers = [16, 27, 38, 49, 60];
+    if (threePrayers.includes(beadCount)) {
+      prayers = [
+        { prayer: "Hail Mary" },
+        { prayer: "Glory Be" },
+        { prayer: "Fatima Prayer" },
+      ];
+    }
     if (beadCount % 11 == 0) {
       beadColor = beadLargeColor;
       beadRadius = beadLargeRadius;
       description = "OurFather";
+      prayers = [{ prayer: "Our Father" }];
     }
     let meshSphere = insertSphere(
       beadColor,
@@ -732,6 +743,7 @@ function insertLoopBeads(spacedPoints, scene) {
     insertItemIntoRosaryItems(
       meshSphere.name,
       description,
+      prayers,
       itemIndex,
       meshSphere.uuid,
       false,
@@ -766,6 +778,7 @@ function insertLine(scene, radius) {
 }
 
 function insertLineBeads(scene) {
+  //insert Our Father, three Hail Mary and another Out Father
   let beadCount = 0;
   let y = 0;
   let description = "";
@@ -773,18 +786,26 @@ function insertLineBeads(scene) {
     beadCount = beadCount + 1;
     let beadColor;
     let beadRadius;
+    let prayers = [];
     if (beadIndex == 1 || beadIndex == 5) {
       beadColor = beadLargeColor;
       beadRadius = beadLargeRadius;
       description = "OurFather";
+      prayers = [{ prayer: "Our Father" }];
     } else if (beadIndex > 0) {
       beadColor = beadSmallColor;
       beadRadius = beadSmallRadius;
       description = "HailMary";
+      prayers = [{ prayer: "Hail Mary" }];
+      console.log(beadIndex);
+      if (beadIndex == 4) {
+        prayers = [{ prayer: "Hail Mary" }, { prayer: "Glory Be" }];
+      }
     } else if (beadIndex == 0) {
       beadColor = beadVeryLargeColor;
       beadRadius = beadVeryLargeRadius;
-      description = "SalveRegina";
+      description = "ApostlesCreed";
+      prayers = [{ prayer: "Apostles Creed" }];
     }
 
     if (beadIndex == 0) {
@@ -808,6 +829,7 @@ function insertLineBeads(scene) {
     insertItemIntoRosaryItems(
       meshSphere.name,
       description,
+      prayers,
       itemIndex,
       meshSphere.uuid,
       false,
@@ -823,7 +845,8 @@ function insertSalveRegina(scene) {
   let beadRadius = beadVeryLargeRadius;
   let description = "SalveRegina";
   beadCount = beadCount + 1;
-
+  let prayers = [];
+  prayers = [{ prayer: "Salve Regina" }];
   y = -0.35;
 
   let meshSphere = insertSphere(
@@ -841,6 +864,7 @@ function insertSalveRegina(scene) {
   insertItemIntoRosaryItems(
     meshSphere.name,
     description,
+    prayers,
     itemIndex,
     meshSphere.uuid,
     false,
@@ -901,10 +925,12 @@ function insertBrownCross(scene) {
   crossGroup.position.set(0, -4.5, 0); // Center the group at the origin
   crossGroup.name = 0;
   scene.add(crossGroup);
+  let prayers = [{ prayer: "Apostles Creed" }];
   insertItemIntoRosaryItems(
     crossGroup.name,
     "Cross",
     0,
+    prayers,
     crossGroup.uuid,
     true,
     crossColor
