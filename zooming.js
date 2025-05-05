@@ -64,6 +64,8 @@ export function smoothZoomToUuid(
   camera.position.copy(startPos);
   camera.quaternion.copy(startQuat);
 
+  smoothZoom(camera, controls, targetPos, endQuat, center, duration, easing);
+  return;
   /*** 5️⃣  Set up the tweens ***/
   gsap.to(camera.position, {
     x: targetPos.x,
@@ -91,7 +93,52 @@ export function smoothZoomToUuid(
   });
 
   if (controls) {
-    // Smoothly move OrbitControls' target as well
+    gsap.to(controls.target, {
+      x: center.x,
+      y: center.y,
+      z: center.z,
+      duration,
+      ease: easing,
+      onUpdate: controls.update.bind(controls),
+    });
+  }
+}
+
+export function smoothZoom(
+  camera,
+  controls,
+  targetPos,
+  endQuat,
+  center,
+  duration,
+  easing
+) {
+  gsap.to(camera.position, {
+    x: targetPos.x,
+    y: targetPos.y,
+    z: targetPos.z,
+    duration,
+    ease: easing,
+    onUpdate: () => {
+      camera.updateProjectionMatrix();
+      if (controls) controls.update();
+    },
+  });
+
+  gsap.to(camera.quaternion, {
+    x: endQuat.x,
+    y: endQuat.y,
+    z: endQuat.z,
+    w: endQuat.w,
+    duration,
+    ease: easing,
+    onUpdate: () => {
+      camera.updateProjectionMatrix();
+      if (controls) controls.update();
+    },
+  });
+
+  if (controls) {
     gsap.to(controls.target, {
       x: center.x,
       y: center.y,

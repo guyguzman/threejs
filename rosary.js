@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { gsap } from "gsap";
-import { smoothZoomToUuid } from "./zooming";
+import { smoothZoomToUuid, smoothZoom } from "./zooming";
 import { createElement, createIcons, icons } from "lucide";
 import { resetWidthHeight } from "./utilities";
 // import { zoom } from "d3";
@@ -199,6 +199,7 @@ async function eventHandlersButtons() {
       restoreCameraSettings();
     }
     let currentIndex = await getStorageItemCurrentIndex();
+    selectBead(currentIndex);
   });
 }
 
@@ -228,16 +229,26 @@ async function restoreCameraSettings() {
   savedCameraQuaternion = await getStorageItem("perspectiveCameraQuaternion");
   savedControlsTarget = await getStorageItem("perspectiveControlsTarget");
 
-  if (savedCameraPosition && savedCameraQuaternion) {
-    camera.position.copy(savedCameraPosition);
-    camera.quaternion.copy(savedCameraQuaternion);
-  }
+  // if (savedCameraPosition && savedCameraQuaternion) {
+  //   camera.position.copy(savedCameraPosition);
+  //   camera.quaternion.copy(savedCameraQuaternion);
+  // }
 
-  if (orbitControls && orbitControls.target && savedControlsTarget) {
-    orbitControls.target.copy(savedControlsTarget);
-    orbitControls.update();
-  } else if (controls && controls.target) {
-  }
+  // if (orbitControls && orbitControls.target && savedControlsTarget) {
+  //   orbitControls.target.copy(savedControlsTarget);
+  //   orbitControls.update();
+  // } else if (controls && controls.target) {
+  // }
+
+  smoothZoom(
+    camera,
+    orbitControls,
+    savedCameraPosition,
+    savedCameraQuaternion,
+    savedControlsTarget,
+    1,
+    "power3.inOut"
+  );
 }
 async function updateStorageZoomLevel(zoomLevel) {
   updateStorageItem("zoomLevel", zoomLevel);
@@ -357,7 +368,7 @@ function clickBead(event) {
 }
 
 async function selectNextBead() {
-  let storage = getStorage();
+  let storage = await getStorage();
   let currentIndex = storage.currentIndex;
   let nextIndex = currentIndex + 1;
   if (nextIndex > rosaryItems.length - 1) {
@@ -366,11 +377,11 @@ async function selectNextBead() {
   let rosaryItem = rosaryItems[nextIndex];
   let objectUuid = scene.getObjectByProperty("uuid", rosaryItem.uuid);
   setActiveBead(objectUuid);
-  updateStorageCurrentIndex(nextIndex);
+  await updateStorageCurrentIndex(nextIndex);
 }
 
 async function selectPreviousBead() {
-  let storage = getStorage();
+  let storage = await getStorage();
   let currentIndex = storage.currentIndex;
   let previousIndex = currentIndex - 1;
   if (previousIndex < 0) {
@@ -379,7 +390,7 @@ async function selectPreviousBead() {
   let rosaryItem = rosaryItems[previousIndex];
   let objectUuid = scene.getObjectByProperty("uuid", rosaryItem.uuid);
   setActiveBead(objectUuid);
-  updateStorageCurrentIndex(previousIndex);
+  await updateStorageCurrentIndex(previousIndex);
 }
 
 async function selectBead(index = 0) {
