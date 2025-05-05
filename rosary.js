@@ -387,6 +387,7 @@ async function setActiveBead(objectUuid) {
     rosaryItem.prayers.forEach((prayer) => {
       let buttonPrayer = document.createElement("div");
       buttonPrayer.classList.add("buttonPrayer");
+      buttonPrayer.classList.add("buttonStyle");
       buttonPrayer.innerText = prayer.prayer;
       elementButtonsPrayers.appendChild(buttonPrayer);
     });
@@ -409,6 +410,7 @@ async function setActiveBead(objectUuid) {
     rosaryItem.prayers.forEach((prayer) => {
       let buttonPrayer = document.createElement("div");
       buttonPrayer.classList.add("buttonPrayer");
+      buttonPrayer.classList.add("buttonStyle");
       buttonPrayer.innerText = prayer.prayer;
       elementButtonsPrayers.appendChild(buttonPrayer);
     });
