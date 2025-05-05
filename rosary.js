@@ -222,17 +222,6 @@ async function restoreCameraSettings() {
   savedCameraQuaternion = await getStorageItem("perspectiveCameraQuaternion");
   savedControlsTarget = await getStorageItem("perspectiveControlsTarget");
 
-  // if (savedCameraPosition && savedCameraQuaternion) {
-  //   camera.position.copy(savedCameraPosition);
-  //   camera.quaternion.copy(savedCameraQuaternion);
-  // }
-
-  // if (orbitControls && orbitControls.target && savedControlsTarget) {
-  //   orbitControls.target.copy(savedControlsTarget);
-  //   orbitControls.update();
-  // } else if (controls && controls.target) {
-  // }
-
   smoothZoom(
     camera,
     orbitControls,
