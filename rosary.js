@@ -62,6 +62,7 @@ let elementButtonNext = document.getElementById("buttonNext");
 let elementButtonReset = document.getElementById("buttonReset");
 let elementButtonZoomOut = document.getElementById("buttonZoomOut");
 let elementButtonZoomIn = document.getElementById("buttonZoomIn");
+let elementButtonsPrayers = document.getElementById("buttonsPrayers");
 
 window.onload = function () {
   let screenSize = resetWidthHeight();
@@ -199,16 +200,11 @@ async function restoreCameraSettings() {
   savedControlsTarget = await getStorageItem("perspectiveControlsTarget");
 
   if (savedCameraPosition && savedCameraQuaternion) {
-    // console.log("savedCameraPosition", savedCameraPosition);
-    // console.log("savedCameraQuaternion", savedCameraQuaternion);
     camera.position.copy(savedCameraPosition);
     camera.quaternion.copy(savedCameraQuaternion);
   }
 
   if (orbitControls && orbitControls.target && savedControlsTarget) {
-    // console.log("orbitControls", orbitControls);
-    // console.log("savedControlsTarget", savedControlsTarget);
-    // console.log("orbitControls.target", orbitControls.target);
     orbitControls.target.copy(savedControlsTarget);
     orbitControls.update();
   } else if (controls && controls.target) {
@@ -336,7 +332,6 @@ async function selectPreviousBead() {
 
 async function selectBead(index = 0) {
   let rosaryItem = rosaryItems[index];
-  console.log(rosaryItems);
   let objectUuid = scene.getObjectByProperty("uuid", rosaryItem.uuid);
   setActiveBead(objectUuid);
 }
@@ -345,6 +340,7 @@ async function setActiveBead(objectUuid) {
   let zoomEnabled = await getStorageItem("zoomEnabled");
 
   resetBeadsOriginalColors();
+  resetPrayers();
 
   let isCross = false;
   let crossGroup = null;
@@ -364,6 +360,12 @@ async function setActiveBead(objectUuid) {
       (item) => item.uuid == crossGroup.uuid
     );
     let rosaryItem = rosaryItems[rosaryIndex];
+    rosaryItem.prayers.forEach((prayer) => {
+      let buttonPrayer = document.createElement("div");
+      buttonPrayer.classList.add("buttonPrayer");
+      buttonPrayer.innerText = prayer.prayer;
+      elementButtonsPrayers.appendChild(buttonPrayer);
+    });
     updateStorageCurrentIndex(rosaryIndex);
     let crossGroupChildren = crossGroup.children;
     activeMeshes.push(crossGroupChildren[0]);
@@ -380,6 +382,12 @@ async function setActiveBead(objectUuid) {
       (item) => item.uuid == objectUuid.uuid
     );
     let rosaryItem = rosaryItems[rosaryIndex];
+    rosaryItem.prayers.forEach((prayer) => {
+      let buttonPrayer = document.createElement("div");
+      buttonPrayer.classList.add("buttonPrayer");
+      buttonPrayer.innerText = prayer.prayer;
+      elementButtonsPrayers.appendChild(buttonPrayer);
+    });
     updateStorageCurrentIndex(rosaryIndex);
     objectUuid.material.color.set(activeColor);
     activeMeshes.push(objectUuid);
@@ -389,6 +397,12 @@ async function setActiveBead(objectUuid) {
   }
 
   return;
+}
+
+function resetPrayers() {
+  while (elementButtonsPrayers.firstChild) {
+    elementButtonsPrayers.removeChild(elementButtonsPrayers.firstChild);
+  }
 }
 
 function getCameraSettings() {
@@ -493,7 +507,6 @@ function insertItemIntoRosaryItems(
     color: color,
   };
   rosaryItems.push(arrayItem);
-  console.log(arrayItem);
 }
 
 function createRosary() {
@@ -797,7 +810,6 @@ function insertLineBeads(scene) {
       beadRadius = beadSmallRadius;
       description = "HailMary";
       prayers = [{ prayer: "Hail Mary" }];
-      console.log(beadIndex);
       if (beadIndex == 4) {
         prayers = [{ prayer: "Hail Mary" }, { prayer: "Glory Be" }];
       }
@@ -929,8 +941,8 @@ function insertBrownCross(scene) {
   insertItemIntoRosaryItems(
     crossGroup.name,
     "Cross",
-    0,
     prayers,
+    0,
     crossGroup.uuid,
     true,
     crossColor

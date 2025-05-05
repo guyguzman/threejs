@@ -77,8 +77,10 @@
 
   .buttonsPrayers {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     justify-content: center;
+    gap: 20px;
   }
 
   .buttonPrayer {
@@ -136,8 +138,8 @@
     </div>
 
     <div class="containerControls">
-      <div class="buttonsPrayers">
-        <div class="buttonPrayer">Hail Mary</div>
+      <div id="buttonsPrayers" class="buttonsPrayers">
+
       </div>
       <div class="buttonsNavigation">
         <div class="buttonNavigation" id="buttonReset"><i data-lucide="rotate-ccw" width="32" height="32"
