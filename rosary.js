@@ -727,7 +727,7 @@ function insertLoopBeads(spacedPoints, scene) {
     itemIndex = itemIndex + 1;
     description = "HailMary";
     let prayers = [{ prayer: "Hail Mary" }];
-    let threePrayers = [10, 21, 32, 43];
+    let threePrayers = [10, 21, 32, 43, 54];
     if (threePrayers.includes(beadCount)) {
       prayers = [
         { prayer: "Hail Mary" },
