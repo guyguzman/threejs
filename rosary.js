@@ -67,7 +67,7 @@ let zoomLevel = 0;
 let minZoomLevel = 0;
 let maxZoomLevel = 2;
 
-const storageCurrentVersion = 1.0;
+const storageCurrentVersion = 1.2;
 
 window.onload = async function () {
   let screenSize = resetWidthHeight();
@@ -80,7 +80,6 @@ window.onload = async function () {
 
   if (!checkStorageExists()) {
     initializeStorage();
-    updateStorageCurrentIndex(0);
   }
 
   if (checkStorageExists()) {
@@ -165,13 +164,15 @@ async function eventHandlersButtons() {
 
   elementButtonReset.addEventListener("click", async function () {
     resetBeadsOriginalColors();
+    updateStorageItem("currentIndex", 0);
+    updateStorageItem("zoomLevel", 0);
     await restoreCameraSettings();
-    await initializeStorage();
+    selectBead(0);
+    console.log("reset");
   });
 
   elementButtonZoomIn.addEventListener("click", async function () {
     let currentZoomLevel = await getZoomLevel();
-    console.log("Current zoom level", currentZoomLevel);
     let zoomLevel = currentZoomLevel + 1;
     if (zoomLevel > maxZoomLevel) {
       zoomLevel = maxZoomLevel;
@@ -179,7 +180,6 @@ async function eventHandlersButtons() {
     if (zoomLevel < minZoomLevel) {
       zoomLevel = minZoomLevel;
     }
-    console.log("Zoom level", zoomLevel);
     updateStorageZoomLevel(zoomLevel);
     let currentIndex = await getStorageItemCurrentIndex();
     selectBead(currentIndex);
@@ -196,7 +196,7 @@ async function eventHandlersButtons() {
     }
     updateStorageZoomLevel(zoomLevel);
     if (zoomLevel == 0) {
-      restoreCameraSettings();
+      await restoreCameraSettings();
     }
     let currentIndex = await getStorageItemCurrentIndex();
     selectBead(currentIndex);
@@ -225,6 +225,7 @@ async function updateStoragePerspectiveCamera() {
 }
 
 async function restoreCameraSettings() {
+  console.log("restoreCameraSettings");
   savedCameraPosition = await getStorageItem("perspectiveCameraPosition");
   savedCameraQuaternion = await getStorageItem("perspectiveCameraQuaternion");
   savedControlsTarget = await getStorageItem("perspectiveControlsTarget");
@@ -292,10 +293,16 @@ async function getStorageVersion() {
   return storage.version;
 }
 
-async function updateStorageVersion(version) {
-  let storage = getStorage();
-  storage.version = version;
+function createStorageIfNotExists() {
   localStorage.setItem("currentState", JSON.stringify(storage));
+}
+
+function updateStorageVersion() {
+  if (checkStorageExists()) {
+    let storage = getStorage();
+    storage.version = storageCurrentVersion;
+    localStorage.setItem("currentState", JSON.stringify(storage));
+  }
 }
 
 async function getZoomLevel() {
@@ -304,24 +311,26 @@ async function getZoomLevel() {
 }
 
 async function updateStorageItem(property, value) {
+  let currentState = {};
   if (checkStorageExists()) {
-    currentState = JSON.parse(localStorage.getItem("currentState"));
+    currentState = getStorage();
+  } else {
+    let currentState = {};
   }
   currentState[property] = value;
-  if (property == "perspectiveCamera") {
-  }
-  currentState.lastIimeStamp = new Date();
   localStorage.setItem("currentState", JSON.stringify(currentState));
 }
 
 async function initializeStorage() {
-  updateStorageVersion(1.1);
-  updateStorageZoomLevel(0);
-  updateStorageStarted(false);
-  updateStorageCurrentIndex(0);
-  updateStoragePerspectiveCamera();
-  updateStorageZoomEnabled(false);
-  updateStorageDateTime();
+  updateStorageItem("version", storageCurrentVersion);
+  updateStorageItem("zoomLevel", 0);
+  updateStorageItem("started", false);
+  updateStorageItem("currentIndex", 0);
+  updateStorageItem("perspectiveCameraPosition", camera.position.clone());
+  updateStorageItem("perspectiveCameraQuaternion", camera.quaternion.clone());
+  updateStorageItem("perspectiveControlsTarget", orbitControls.target.clone());
+  updateStorageItem("zoomEnabled", false);
+  updateStorageItem("lastIimeStamp", new Date());
   selectBead(0);
 }
 
@@ -402,12 +411,13 @@ async function selectBead(index = 0) {
 async function setActiveBead(objectUuid) {
   // let zoomEnabled = await getStorageItem("zoomEnabled");
   let zoomLevel = await getStorageItem("zoomLevel");
-  console.log("Zoom level", zoomLevel);
   resetBeadsOriginalColors();
   resetPrayers();
 
   let isCross = false;
   let crossGroup = null;
+
+  console.log("objectUuid", objectUuid);
 
   if (objectUuid.children.length > 0) {
     isCross = true;
@@ -441,7 +451,7 @@ async function setActiveBead(objectUuid) {
       zoomToBead(crossGroup, zoomLevel);
     }
     if (zoomLevel == 0) {
-      restoreCameraSettings();
+      await restoreCameraSettings();
     }
   }
 
@@ -464,7 +474,7 @@ async function setActiveBead(objectUuid) {
       zoomToBead(objectUuid, zoomLevel);
     }
     if (zoomLevel == 0) {
-      restoreCameraSettings();
+      await restoreCameraSettings();
     }
   }
 
