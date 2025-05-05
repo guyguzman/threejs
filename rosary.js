@@ -146,14 +146,6 @@ function eventHandlers() {
 }
 
 async function eventHandlersButtons() {
-  // elementButtonStart.addEventListener("click", function () {
-  //   initializeStorage();
-  //   resetBeadsOriginalColors();
-  //   selectBead(0);
-  //   updateStorageStarted(true);
-  //   updateStorageDateTime();
-  // });
-
   elementButtonPrev.addEventListener("click", function () {
     selectPreviousBead();
   });
