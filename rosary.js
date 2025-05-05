@@ -63,8 +63,13 @@ let elementButtonReset = document.getElementById("buttonReset");
 let elementButtonZoomOut = document.getElementById("buttonZoomOut");
 let elementButtonZoomIn = document.getElementById("buttonZoomIn");
 let elementButtonsPrayers = document.getElementById("buttonsPrayers");
+let zoomLevel = 0;
+let minZoomLevel = 0;
+let maxZoomLevel = 2;
 
-window.onload = function () {
+const storageCurrentVersion = 1.0;
+
+window.onload = async function () {
   let screenSize = resetWidthHeight();
   createIcons({ icons });
   createRosary();
@@ -79,6 +84,18 @@ window.onload = function () {
   }
 
   if (checkStorageExists()) {
+    let storageVersion = await getStorageVersion();
+
+    if (
+      storageVersion != storageCurrentVersion ||
+      storageVersion == null ||
+      storageVersion == undefined ||
+      typeof storageVersion != typeof storageCurrentVersion
+    ) {
+      await initializeStorage();
+    }
+
+    updateStorageFormat();
     let currentStateJSON = localStorage.getItem("currentState");
     currentState = JSON.parse(currentStateJSON);
     if (currentState.started || !currentState.started) {
@@ -95,23 +112,16 @@ function eventHandlers() {
   window.addEventListener("click", clickBead);
 
   let lastTapTime = 0;
-  const doubleTapThreshold = 300; // Time in milliseconds between taps to be considered a double-tap
+  const doubleTapThreshold = 300;
 
   window.addEventListener("touchend", function (event) {
     const currentTime = new Date().getTime();
     const tapDelay = currentTime - lastTapTime;
 
     if (tapDelay < doubleTapThreshold && tapDelay > 0) {
-      // This is a double-tap
-      console.log("Double-tapped!");
       selectNextBead();
-      // Add your double-tap handling code here
-      // For example:
-      // targetElement.classList.toggle('highlight');
-      event.preventDefault(); // Prevent the default action (like zooming)
+      event.preventDefault();
     } else {
-      // This is the first tap or a tap that is too slow to be a double-tap
-      console.log("Single tap or start of a potential double-tap");
     }
 
     lastTapTime = currentTime;
@@ -161,12 +171,21 @@ async function eventHandlersButtons() {
   });
 
   elementButtonZoomIn.addEventListener("click", async function () {
-    await updateStorageItem("zoomEnabled", true);
+    let currentZoomLevel = await getZoomLevel();
+    let zoomLevel = currentZoomLevel + 1;
+    if (zoomLevel > maxZoomLevel) {
+      zoomLevel = maxZoomLevel;
+    }
+    if (zoomLevel < minZoomLevel) {
+      zoomLevel = minZoomLevel;
+    }
+    updateStorageZoomLevel(zoomLevel);
     let currentIndex = await getStorageItemCurrentIndex();
     selectBead(currentIndex);
   });
 
   elementButtonZoomOut.addEventListener("click", async function () {
+    console.log("Zoom out");
     await restoreCameraSettings();
     updateStorageItem("zoomEnabled", false);
   });
@@ -234,6 +253,9 @@ async function restoreCameraSettings() {
   } else if (controls && controls.target) {
   }
 }
+async function updateStorageZoomLevel(zoomLevel) {
+  updateStorageItem("zoomLevel", zoomLevel);
+}
 
 async function updateStorageCurrentIndex(index) {
   updateStorageItem("currentIndex", index);
@@ -266,6 +288,24 @@ async function getStorageItemCurrentIndex() {
   return storage.currentIndex;
 }
 
+async function updateStorageFormat() {}
+
+async function getStorageVersion() {
+  let storage = getStorage();
+  return storage.version;
+}
+
+async function updateStorageVersion(version) {
+  let storage = getStorage();
+  storage.version = version;
+  localStorage.setItem("currentState", JSON.stringify(storage));
+}
+
+async function getZoomLevel() {
+  let storage = getStorage();
+  return storage.zoomLevel;
+}
+
 async function updateStorageItem(property, value) {
   if (checkStorageExists()) {
     currentState = JSON.parse(localStorage.getItem("currentState"));
@@ -278,6 +318,8 @@ async function updateStorageItem(property, value) {
 }
 
 async function initializeStorage() {
+  updateStorageVersion(1.1);
+  updateStorageZoomLevel(0);
   updateStorageStarted(false);
   updateStorageCurrentIndex(0);
   updateStoragePerspectiveCamera();
@@ -361,8 +403,9 @@ async function selectBead(index = 0) {
 }
 
 async function setActiveBead(objectUuid) {
-  let zoomEnabled = await getStorageItem("zoomEnabled");
-
+  // let zoomEnabled = await getStorageItem("zoomEnabled");
+  let zoomLevel = await getStorageItem("zoomLevel");
+  console.log("Zoom level", zoomLevel);
   resetBeadsOriginalColors();
   resetPrayers();
 
@@ -397,7 +440,7 @@ async function setActiveBead(objectUuid) {
     activeMeshes.push(crossGroupChildren[1]);
     crossGroupChildren[0].material.color.set(activeColor);
     crossGroupChildren[1].material.color.set(activeColor);
-    if (zoomEnabled) {
+    if (zoomLevel > 0) {
       zoomToBead(crossGroup);
     }
   }
@@ -417,8 +460,10 @@ async function setActiveBead(objectUuid) {
     updateStorageCurrentIndex(rosaryIndex);
     objectUuid.material.color.set(activeColor);
     activeMeshes.push(objectUuid);
-    if (zoomEnabled) {
+    if (zoomLevel > 0) {
       zoomToBead(objectUuid);
+    }
+    if (zoomLevel == 0) {
     }
   }
 
@@ -766,7 +811,6 @@ function insertLoopBeads(spacedPoints, scene) {
       beadRadius = beadLargeRadius;
       description = "OurFather";
       prayers = [{ prayer: "Our Father" }];
-      console.log(beadCount);
     }
     let meshSphere = insertSphere(
       beadColor,
@@ -882,10 +926,10 @@ function insertSalveRegina(scene) {
   let y = 0;
   let beadColor = beadVeryLargeColor;
   let beadRadius = beadVeryLargeRadius;
-  let description = "SalveRegina";
+  let description = "HailHolyQueen";
   beadCount = beadCount + 1;
   let prayers = [];
-  prayers = [{ prayer: "Salve Regina" }];
+  prayers = [{ prayer: "Hail, Holy Queen" }];
   y = -0.35;
 
   let meshSphere = insertSphere(
