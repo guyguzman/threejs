@@ -497,7 +497,7 @@ function insertItemIntoRosaryItems(
   group,
   color
 ) {
-  let arrayItem = {
+  let rosayItem = {
     name: name,
     description: description,
     prayers: prayers,
@@ -506,7 +506,7 @@ function insertItemIntoRosaryItems(
     group: group,
     color: color,
   };
-  rosaryItems.push(arrayItem);
+  rosaryItems.push(rosayItem);
 }
 
 function createRosary() {
@@ -727,7 +727,7 @@ function insertLoopBeads(spacedPoints, scene) {
     itemIndex = itemIndex + 1;
     description = "HailMary";
     let prayers = [{ prayer: "Hail Mary" }];
-    let threePrayers = [16, 27, 38, 49, 60];
+    let threePrayers = [10, 21, 32, 43];
     if (threePrayers.includes(beadCount)) {
       prayers = [
         { prayer: "Hail Mary" },
@@ -740,6 +740,7 @@ function insertLoopBeads(spacedPoints, scene) {
       beadRadius = beadLargeRadius;
       description = "OurFather";
       prayers = [{ prayer: "Our Father" }];
+      console.log(beadCount);
     }
     let meshSphere = insertSphere(
       beadColor,
@@ -810,7 +811,7 @@ function insertLineBeads(scene) {
       beadRadius = beadSmallRadius;
       description = "HailMary";
       prayers = [{ prayer: "Hail Mary" }];
-      if (beadIndex == 4) {
+      if (beadIndex == 2) {
         prayers = [{ prayer: "Hail Mary" }, { prayer: "Glory Be" }];
       }
     } else if (beadIndex == 0) {
