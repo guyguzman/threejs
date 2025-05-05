@@ -19,10 +19,12 @@ export function smoothZoomToUuid(
   uuid,
   camera,
   scene,
+  zoomLevel,
   controls = null,
   { padding = 1.2, duration = 1, easing = "power3.inOut" } = {}
 ) {
   /*** 1️⃣  Find the target object ***/
+
   const obj = scene.getObjectByProperty("uuid", uuid);
   if (!obj) {
     console.warn(`No object with uuid ${uuid}`);
@@ -40,7 +42,8 @@ export function smoothZoomToUuid(
   let dist = (maxDim * 0.5) / Math.tan(fovRad * 0.5);
   dist *= padding;
   dist = 0.6;
-  let zoomOutFactor = 14;
+  let zoomOutFactor = 28 / zoomLevel;
+  console.log("zoomOutFactor", zoomOutFactor);
   dist = dist * zoomOutFactor; // extra space around object
 
   // keep current viewing direction:
