@@ -110,20 +110,27 @@ function eventHandlers() {
   window.addEventListener("mousemove", onPointerMove);
   window.addEventListener("click", clickBead);
 
-  let lastTapTime = 0;
+  let previousTapTime = 0;
+  let tapWindowLength = 1000;
   const doubleTapThreshold = 300;
+  let lastTimeSelectNextBead = 0;
 
   window.addEventListener("touchend", function (event) {
-    const currentTime = new Date().getTime();
-    const tapDelay = currentTime - lastTapTime;
+    const currentTapTime = new Date().getTime();
+    const tapDelay = currentTapTime - previousTapTime;
 
-    if (tapDelay < doubleTapThreshold && tapDelay > 0) {
+    if (
+      tapDelay < doubleTapThreshold &&
+      tapDelay > 0 &&
+      currentTapTime - lastTimeSelectNextBead > tapWindowLength
+    ) {
+      lastTimeSelectNextBead = currentTapTime;
       selectNextBead();
       event.preventDefault();
     } else {
     }
 
-    lastTapTime = currentTime;
+    previousTapTime = currentTapTime;
   });
 
   window.addEventListener("resize", () => {
@@ -160,7 +167,6 @@ async function eventHandlersButtons() {
     updateStorageItem("zoomLevel", 0);
     await restoreCameraSettings();
     selectBead(0);
-    console.log("reset");
   });
 
   elementButtonZoomIn.addEventListener("click", async function () {
@@ -217,7 +223,6 @@ async function updateStoragePerspectiveCamera() {
 }
 
 async function restoreCameraSettings() {
-  console.log("restoreCameraSettings");
   savedCameraPosition = await getStorageItem("perspectiveCameraPosition");
   savedCameraQuaternion = await getStorageItem("perspectiveCameraQuaternion");
   savedControlsTarget = await getStorageItem("perspectiveControlsTarget");
@@ -232,6 +237,7 @@ async function restoreCameraSettings() {
     "power3.inOut"
   );
 }
+
 async function updateStorageZoomLevel(zoomLevel) {
   updateStorageItem("zoomLevel", zoomLevel);
 }
@@ -397,8 +403,6 @@ async function setActiveBead(objectUuid) {
 
   let isCross = false;
   let crossGroup = null;
-
-  console.log("objectUuid", objectUuid);
 
   if (objectUuid.children.length > 0) {
     isCross = true;
