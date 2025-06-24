@@ -97,6 +97,7 @@ window.onload = async function () {
     updateStorageFormat();
     let currentStateJSON = localStorage.getItem("currentState");
     currentState = JSON.parse(currentStateJSON);
+
     if (currentState.started || !currentState.started) {
       selectBead(currentState.currentIndex);
     }
@@ -134,21 +135,21 @@ function eventHandlers() {
   });
 
   window.addEventListener("resize", () => {
-    screenSize = resetWidthHeight();
+    let screenSize = resetWidthHeight();
+    let canvas = document.getElementById("canvas");
     createRosary();
     camera.updateProjectionMatrix();
-    camera.aspect = window.innerWidth / window.innerHeight;
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    setCanvasSize();
   });
+
   screen.orientation.addEventListener("change", function () {
     // Orientation has changed
     const currentOrientation = screen.orientation.type; // e.g., "portrait-primary", "landscape-secondary"
     const currentAngle = screen.orientation.angle; // e.g., 0, 90, -90, 180
-    screenSize = resetWidthHeight();
+    let screenSize = resetWidthHeight();
     createRosary();
     camera.updateProjectionMatrix();
-    camera.aspect = window.innerWidth / window.innerHeight;
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    setCanvasSize();
   });
 }
 
@@ -593,22 +594,19 @@ function createRosary() {
   insertSalveRegina(scene);
   insertLights(scene);
 
-  let camera = addCamera(scene);
-  const canvas = document.querySelector(".webgl");
+  const canvas = document.getElementById("canvas");
+  const canvasContainer = document.getElementById("canvasContainer");
 
+  let camera = addCamera(scene);
   addOrbitControls(camera, canvas);
   moveCameraTo(0, 0, 50);
-  pointCameraTo(0, -1, 0);
+  pointCameraTo(0, 1, 0);
 
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(2);
+  setCanvasSize();
+
+  renderer.setPixelRatio(window.devicePixelRatio);
+  canvasContainer.appendChild(renderer.domElement);
   renderer.render(scene, camera);
-
-  // window.addEventListener("resize", () => {
-  //   camera.updateProjectionMatrix();
-  //   camera.aspect = window.innerWidth / window.innerHeight;
-  //   renderer.setSize(window.innerWidth, window.innerHeight);
-  // });
 
   const renderLoop = () => {
     if (controlsEnabled) orbitControls.update();
@@ -616,15 +614,28 @@ function createRosary() {
     window.requestAnimationFrame(renderLoop);
   };
 
-  //selectBead();
   renderLoop();
 }
 
+function setCanvasSize() {
+  let canvasSize = getCanvasWidthHeight();
+  const useCanvasSize = true;
+
+  if (useCanvasSize) {
+    renderer.setSize(canvasSize.width, canvasSize.height);
+    camera.aspect = canvasSize.width / canvasSize.height;
+  } else {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+  }
+}
+
 function addCamera(scene) {
+  let canvasSize = getCanvasWidthHeight();
   let width = window.innerWidth;
   let height = window.innerHeight;
   let fov = 20;
-  let aspect = width / height;
+  let aspect = canvasSize.width / canvasSize.height;
   let near = 0.05;
   let far = 400;
 
@@ -632,6 +643,15 @@ function addCamera(scene) {
 
   scene.add(camera);
   return camera;
+}
+
+function getCanvasWidthHeight() {
+  const canvasContainer = document.getElementById("canvasContainer");
+  let boundingRect = canvasContainer.getBoundingClientRect();
+  return {
+    width: boundingRect.width,
+    height: boundingRect.height,
+  };
 }
 
 function addOrbitControls(camera, canvas) {
