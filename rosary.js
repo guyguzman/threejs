@@ -67,10 +67,14 @@ let zoomLevel = 0;
 let minZoomLevel = 0;
 let maxZoomLevel = 2;
 
+let screenInfo;
+
 const storageCurrentVersion = 1.2;
 
 window.onload = async function () {
-  let screenSize = resetWidthHeight();
+  screenInfo = resetWidthHeight();
+  // elementMessage.innerHTML = JSON.stringify(screen, null, 2);
+
   createIcons({ icons });
   createRosary();
 
@@ -109,7 +113,10 @@ window.onload = async function () {
 
 function eventHandlers() {
   window.addEventListener("mousemove", onPointerMove);
-  window.addEventListener("click", clickBead);
+
+  if (screenInfo.isDesktop) {
+    window.addEventListener("click", clickBead);
+  }
 
   let previousTapTime = 0;
   let tapWindowLength = 1000;
@@ -135,7 +142,7 @@ function eventHandlers() {
   });
 
   window.addEventListener("resize", () => {
-    let screenSize = resetWidthHeight();
+    screenInfo = resetWidthHeight();
     let canvas = document.getElementById("canvas");
     createRosary();
     camera.updateProjectionMatrix();
@@ -146,7 +153,7 @@ function eventHandlers() {
     // Orientation has changed
     const currentOrientation = screen.orientation.type; // e.g., "portrait-primary", "landscape-secondary"
     const currentAngle = screen.orientation.angle; // e.g., 0, 90, -90, 180
-    let screenSize = resetWidthHeight();
+    screenInfo = resetWidthHeight();
     createRosary();
     camera.updateProjectionMatrix();
     setCanvasSize();
