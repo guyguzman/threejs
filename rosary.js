@@ -18,17 +18,13 @@ let chainRadius = 0.04;
 
 let chainColor = "#606265";
 let beadSmallColor = "#f0f2f5";
-let beadLargeColor = "#ff0000";
-beadLargeColor = "#0080FF";
-beadLargeColor = "#21A2FF";
-beadLargeColor = "#50ffb5";
-let crossColor = "#652500";
-crossColor = "#a26f56";
-let activeColor = "#00ff00";
-activeColor = "#ff65a3";
-activeColor = "#ff0000";
+beadSmallColor = "#c0c2c5";
+let beadLargeColor = "#50ffb5";
+let beadVeryLargeColor = "#50D5FF";
+let beadCenterColor = "#50D5FF";
+let crossColor = "#a26f56";
+let activeColor = "#ff0000";
 let nextColor = "#E0FF21";
-let beadVeryLargeColor = beadSmallColor;
 
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -63,11 +59,17 @@ let elementButtonReset = document.getElementById("buttonReset");
 let elementButtonZoomOut = document.getElementById("buttonZoomOut");
 let elementButtonZoomIn = document.getElementById("buttonZoomIn");
 let elementButtonsPrayers = document.getElementById("buttonsPrayers");
+let elementCanvasContainer = document.getElementById("canvasContainer");
+let elementHelp = document.getElementById("help");
+let elementPrayer = document.getElementById("prayer");
+let elementMessage = document.getElementById("message");
+
 let zoomLevel = 0;
 let minZoomLevel = 0;
 let maxZoomLevel = 2;
 
 let screenInfo;
+let prayers = "";
 
 const storageCurrentVersion = 1.2;
 
@@ -111,6 +113,8 @@ window.onload = async function () {
   eventHandlersButtons();
 };
 
+function clearOverlays() {}
+
 function eventHandlers() {
   window.addEventListener("mousemove", onPointerMove);
 
@@ -123,23 +127,25 @@ function eventHandlers() {
   const doubleTapThreshold = 300;
   let lastTimeSelectNextBead = 0;
 
-  window.addEventListener("touchend", function (event) {
-    const currentTapTime = new Date().getTime();
-    const tapDelay = currentTapTime - previousTapTime;
+  if (screenInfo.isMobile) {
+    elementCanvasContainer.addEventListener("touchend", function (event) {
+      const currentTapTime = new Date().getTime();
+      const tapDelay = currentTapTime - previousTapTime;
 
-    if (
-      tapDelay < doubleTapThreshold &&
-      tapDelay > 0 &&
-      currentTapTime - lastTimeSelectNextBead > tapWindowLength
-    ) {
-      lastTimeSelectNextBead = currentTapTime;
-      selectNextBead();
-      event.preventDefault();
-    } else {
-    }
+      if (
+        tapDelay < doubleTapThreshold &&
+        tapDelay > 0 &&
+        currentTapTime - lastTimeSelectNextBead > tapWindowLength
+      ) {
+        lastTimeSelectNextBead = currentTapTime;
+        selectNextBead();
+        event.preventDefault();
+      } else {
+      }
 
-    previousTapTime = currentTapTime;
-  });
+      previousTapTime = currentTapTime;
+    });
+  }
 
   window.addEventListener("resize", () => {
     screenInfo = resetWidthHeight();
@@ -890,11 +896,12 @@ function insertLineBeads(scene) {
   let y = 0;
   let description = "";
   for (let beadIndex = 5; beadIndex > 0; beadIndex--) {
+    let beadIndexReverse = 5 - beadIndex + 1;
     beadCount = beadCount + 1;
     let beadColor;
     let beadRadius;
     let prayers = [];
-    if (beadIndex == 1 || beadIndex == 5) {
+    if (beadIndexReverse == 1 || beadIndexReverse == 5) {
       beadColor = beadLargeColor;
       beadRadius = beadLargeRadius;
       description = "OurFather";
@@ -904,7 +911,7 @@ function insertLineBeads(scene) {
       beadRadius = beadSmallRadius;
       description = "HailMary";
       prayers = [{ prayer: "Hail Mary" }];
-      if (beadIndex == 2) {
+      if (beadIndexReverse == 4) {
         prayers = [{ prayer: "Hail Mary" }, { prayer: "Glory Be" }];
       }
     } else if (beadIndex == 0) {
