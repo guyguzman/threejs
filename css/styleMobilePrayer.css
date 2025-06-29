@@ -1,0 +1,57 @@
+@media screen and (max-width: 600px) {
+  .prayerCategoryTitle {
+    font-size: 36px;
+    font-weight: 600;
+    width: 90%;
+  }
+
+  .prayerSubCategoryTitle {
+    grid-row: 1;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    align-items: center;
+    justify-items: center;
+    font-size: 24px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.9);
+  }
+  .expand {
+    font-size: 20px;
+    color: #808080;
+    position: relative;
+  }
+
+  .expandBox {
+    position: absolute;
+    right: 10px;
+    bottom: 3px;
+  }
+
+  .shrinkBox {
+    position: absolute;
+    right: 10px;
+    bottom: 3px;
+  }
+
+  .overlayContent {
+    width: 100vw;
+    height: 100vh;
+    min-width: 360px;
+    padding: 15px;
+    align-self: start;
+    box-sizing: border-box;
+  }
+
+  .overlayContentTitle {
+    font-size: 24px;
+    margin-top: 50px;
+  }
+
+  .overlayContentText {
+    /* overflow-x: hidden;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch; */
+  }
+}

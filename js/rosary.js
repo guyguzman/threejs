@@ -1,13 +1,15 @@
-import "./style.css";
+// import "/css/style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { gsap } from "gsap";
-import { smoothZoomToUuid, smoothZoom } from "./zooming";
+import { smoothZoomToUuid, smoothZoom } from "/js/zooming";
+import { resetWidthHeight } from "/js/utilities";
+import { oklch, formatHex } from "culori";
+import Color from "colorjs.io";
 import { createElement, createIcons, icons } from "lucide";
-import { resetWidthHeight } from "./utilities";
-// import { zoom } from "d3";
-// import { update } from "three/examples/jsm/libs/tween.module.js";
+import { gsap } from "gsap";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { zoom } from "d3";
+import { update } from "three/examples/jsm/libs/tween.module.js";
 
 let beadSmallRadius = 0.15;
 let beadLargeRadius = 0.18;
@@ -16,19 +18,46 @@ let beadRoughness = 0.5;
 let chainRoughness = 0;
 let chainRadius = 0.04;
 
+const oklchLx = 0.7; // Lightness (0 to 1)
+const oklchCx = 0.15; // Chroma
+const oklchHx = 240; // Hue (0 to 360)
+
+// Create a Color object in Oklch space
+const oklchColor = new Color("oklch", [oklchLx, oklchCx, oklchHx]);
+// Convert to sRGB and then to a hex string
+const hexString = oklchColor.to("srgb").toString({ format: "hex" });
+console.log(hexString);
+
 let chainColor = "#606265";
-let beadSmallColor = "#f0f2f5";
-beadSmallColor = "#c0c2c5";
-let beadLargeColor = "#50ffb5";
-let beadVeryLargeColor = "#50D5FF";
-let beadCenterColor = "#50D5FF";
+let baseBeadColorLarge = "#39ffb4";
+let baseBeadColorSmall = "#f0f2f5";
+let baseBeadColorLargeOKLCH = new Color(baseBeadColorLarge).to("oklch");
+let baseBeadColorSmallOKLCH = new Color(baseBeadColorSmall).to("oklch");
+baseBeadColorSmallOKLCH.l = 0.9; // Adjusted lightness
+
+let beadColorSmall = baseBeadColorSmallOKLCH
+  .to("srgb")
+  .toString({ format: "hex" });
+let beadColorLarge = baseBeadColorLargeOKLCH
+  .to("srgb")
+  .toString({ format: "hex" });
+let beadColorVeryLarge = baseBeadColorLargeOKLCH
+  .to("srgb")
+  .toString({ format: "hex" });
+let beadColorCenter = baseBeadColorLargeOKLCH
+  .to("srgb")
+  .toString({ format: "hex" });
 let crossColor = "#a26f56";
 let activeColor = "#ff0000";
 let nextColor = "#E0FF21";
 
-const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
-const renderer = new THREE.WebGLRenderer({ canvas });
+let raycaster;
+let pointer;
+let renderer;
+raycaster = new THREE.Raycaster();
+pointer = new THREE.Vector2();
+renderer = new THREE.WebGLRenderer({ canvas });
+
 let camera;
 let scene;
 let orbitControls;
@@ -74,6 +103,10 @@ let prayers = "";
 const storageCurrentVersion = 1.2;
 
 window.onload = async function () {
+  // raycaster = new THREE.Raycaster();
+  // pointer = new THREE.Vector2();
+  // renderer = new THREE.WebGLRenderer({ canvas });
+
   screenInfo = resetWidthHeight();
   // elementMessage.innerHTML = JSON.stringify(screen, null, 2);
 
@@ -823,7 +856,7 @@ function insertLoopBeads(spacedPoints, scene) {
   for (let index = 2; index < spacedPoints.length - 2; index = index + 2) {
     beadCount = beadCount + 1;
     let beadRadius = beadSmallRadius;
-    let beadColor = beadSmallColor;
+    let beadColor = beadColorSmall;
     itemIndex = itemIndex + 1;
     description = "HailMary";
     let prayers = [{ prayer: "Hail Mary" }];
@@ -836,7 +869,7 @@ function insertLoopBeads(spacedPoints, scene) {
       ];
     }
     if (beadCount % 11 == 0) {
-      beadColor = beadLargeColor;
+      beadColor = beadColorLarge;
       beadRadius = beadLargeRadius;
       description = "OurFather";
       prayers = [{ prayer: "Our Father" }];
@@ -902,12 +935,12 @@ function insertLineBeads(scene) {
     let beadRadius;
     let prayers = [];
     if (beadIndexReverse == 1 || beadIndexReverse == 5) {
-      beadColor = beadLargeColor;
+      beadColor = beadColorLarge;
       beadRadius = beadLargeRadius;
       description = "OurFather";
       prayers = [{ prayer: "Our Father" }];
     } else if (beadIndex > 0) {
-      beadColor = beadSmallColor;
+      beadColor = beadColorSmall;
       beadRadius = beadSmallRadius;
       description = "HailMary";
       prayers = [{ prayer: "Hail Mary" }];
@@ -915,7 +948,7 @@ function insertLineBeads(scene) {
         prayers = [{ prayer: "Hail Mary" }, { prayer: "Glory Be" }];
       }
     } else if (beadIndex == 0) {
-      beadColor = beadVeryLargeColor;
+      beadColor = beadColorVeryLarge;
       beadRadius = beadVeryLargeRadius;
       description = "ApostlesCreed";
       prayers = [{ prayer: "Apostles Creed" }];
@@ -954,12 +987,12 @@ function insertLineBeads(scene) {
 function insertSalveRegina(scene) {
   let beadCount = 0;
   let y = 0;
-  let beadColor = beadVeryLargeColor;
+  let beadColor = beadColorCenter;
   let beadRadius = beadVeryLargeRadius;
   let description = "HailHolyQueen";
   beadCount = beadCount + 1;
   let prayers = [];
-  prayers = [{ prayer: "Hail, Holy Queen" }];
+  prayers = [{ prayer: "Hail Holy Queen" }];
   y = -0.35;
 
   let meshSphere = insertSphere(

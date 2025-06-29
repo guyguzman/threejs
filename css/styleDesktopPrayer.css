@@ -1,0 +1,244 @@
+.prayerContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  align-items: center;
+  justify-items: center;
+  margin-top: 100px;
+  width: 100%;
+}
+
+.expandShrink {
+  font-size: 20px;
+  color: #808080;
+  position: relative;
+  color: red;
+}
+
+.expandBox {
+  position: absolute;
+  right: 10px;
+  bottom: 3px;
+}
+
+.shrinkBox {
+  position: absolute;
+  right: 10px;
+  bottom: 3px;
+}
+
+.prayerCategory {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 100px 1fr;
+  align-items: center;
+  justify-items: center;
+  box-sizing: border-box;
+  padding: 0px 0 40px 0px;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0);
+}
+
+.prayerCategoryTitle {
+  grid-row: 1;
+  height: 100%;
+  width: 50%;
+  min-width: 300px;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  align-items: center;
+  justify-items: center;
+  font-size: 70px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 1);
+  border-style: solid;
+  border-width: 1px 0 0 0;
+  border-color: white;
+  margin-bottom: 60px;
+  text-transform: uppercase;
+}
+
+.prayerCategorySubCategories {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  align-content: center;
+}
+
+.prayerSubCategory {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 100px 1fr;
+  align-items: center;
+  justify-items: center;
+  box-sizing: border-box;
+  padding: 20px;
+}
+
+.prayerSubCategoryTitle {
+  grid-row: 1;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  align-items: center;
+  justify-items: center;
+  font-size: 40px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+}
+
+.prayerSubCategoryPrayers {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 20px;
+  grid-row: 2;
+  justify-content: center;
+  align-content: center;
+}
+
+/* --------------------------------------------------------------- */
+
+.prayer {
+  width: clamp(360px, 90%, 450px);
+  max-height: var(--prayerMaxHeight);
+  background-color: #f0f2f5;
+  padding: 20px 20px 40px 20px;
+  box-sizing: border-box;
+  background-color: rgba(220, 225, 230, 0.9);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.prayerName {
+  font-size: 20px;
+  margin-bottom: 16px;
+  font-weight: 900;
+  display: flex;
+  flex-direction: column;
+}
+
+.prayerNameTitle {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.prayerNameSubTitle {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.prayerContent {
+  overflow-y: auto;
+  max-height: var(--prayerContentMaxHeight);
+  line-height: 1.6em;
+  font-size: 1em;
+  font-weight: 300;
+  scrollbar-color: var(--scrollBarThumb) var(--scrollBarTrack);
+  scrollbar-width: medium;
+}
+
+.prayerContent::-webkit-scrollbar {
+  width: 16px;
+}
+
+.prayerContent::-webkit-scrollbar-track {
+  background-color: var(--scrollBarTrack);
+}
+
+.prayerContent::-webkit-scrollbar-thumb {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+.prayerContent::-webkit-scrollbar-thumb {
+  background-color: var(--scrollBarThumb);
+  box-shadow: inset 2px 2px 5px 0 rgba(#fff, 0.5);
+  border-radius: var(--borderRadius);
+  width: 10px;
+}
+
+.prayerImage {
+  height: 700px;
+  background-position: center center;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.prayerBody {
+  margin-left: 0px;
+}
+
+.prayerBodyParagraph {
+  font-weight: 400;
+  margin-bottom: 10px;
+}
+
+.prayerBodyParagraphInlineBold {
+  font-weight: 900;
+}
+
+.prayerStep {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 50px 1fr;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 16px;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.prayerStepTitle {
+  display: flex;
+  width: 100%;
+  /* gap: 10px; */
+}
+
+.prayerStepTitleNumber {
+  font-size: 24px;
+  display: grid;
+  align-items: center;
+  justify-items: start;
+  margin-top: 2px;
+  width: var(--stepIndent);
+}
+
+.prayerStepTitleText {
+  display: grid;
+  align-items: center;
+}
+
+.prayerStepBody {
+  grid-column: 1;
+  grid-row: 2;
+  margin-left: var(--stepIndent);
+}
+
+.prayerRepeat {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.prayerStepBead {
+  font-weight: 300;
+}
+
+prayerSubStep {
+  padding-left: 20px;
+}
+
+.prayerSubStepTitle {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.prayerSubStepText {
+  font-weight: 400;
+  margin-bottom: 12px;
+}

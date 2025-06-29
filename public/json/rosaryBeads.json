@@ -1,0 +1,528 @@
+[
+    {
+        "title": "Rosary",
+        "beads": [
+            {
+                "beadIndex": 0,
+                "prayers": [
+                    {
+                        "prayer": "Apostles Creed"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 1,
+                "prayers": [
+                    {
+                        "prayer": "Our Father"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 2,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 3,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 4,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    },
+                    {
+                        "prayer": "Glory Be"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 5,
+                "prayers": [
+                    {
+                        "prayer": "Our Father"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 6,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 7,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 8,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 9,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 10,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 11,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 12,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 13,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 14,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 15,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    },
+                    {
+                        "prayer": "Glory Be"
+                    },
+                    {
+                        "prayer": "Fatima Prayer"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 16,
+                "prayers": [
+                    {
+                        "prayer": "Our Father"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 17,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 18,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 19,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 20,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 21,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 22,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 23,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 24,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 25,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 26,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    },
+                    {
+                        "prayer": "Glory Be"
+                    },
+                    {
+                        "prayer": "Fatima Prayer"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 27,
+                "prayers": [
+                    {
+                        "prayer": "Our Father"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 28,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 29,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 30,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 31,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 32,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 33,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 34,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 35,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 36,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 37,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    },
+                    {
+                        "prayer": "Glory Be"
+                    },
+                    {
+                        "prayer": "Fatima Prayer"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 38,
+                "prayers": [
+                    {
+                        "prayer": "Our Father"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 39,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 40,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 41,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 42,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 43,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 44,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 45,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 46,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 47,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 48,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    },
+                    {
+                        "prayer": "Glory Be"
+                    },
+                    {
+                        "prayer": "Fatima Prayer"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 49,
+                "prayers": [
+                    {
+                        "prayer": "Our Father"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 50,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 51,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 52,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 53,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 54,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 55,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 56,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 57,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 58,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 59,
+                "prayers": [
+                    {
+                        "prayer": "Hail Mary"
+                    },
+                    {
+                        "prayer": "Glory Be"
+                    },
+                    {
+                        "prayer": "Fatima Prayer"
+                    }
+                ]
+            },
+            {
+                "beadIndex": 60,
+                "prayers": [
+                    {
+                        "prayer": "Hail, Holy Queen"
+                    }
+                ]
+            }
+        ]
+    }
+]
