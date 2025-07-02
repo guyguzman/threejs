@@ -1,22 +1,22 @@
 [
     {
         "prayer": "Our Father",
-        "prayerFilename": "our_father.html"
+        "prayerFilename": "Prayer_OurFather.html"
     },
     {
         "prayer": "Hail Mary",
-        "prayerFilename": "hail_mary.html"
+        "prayerFilename": "Prayer_HailMary.html"
     },
     {
         "prayer": "Glory Be",
-        "prayerFilename": "glory_be.html"
+        "prayerFilename": "Prayer_GloryBe.html"
     },
     {
         "prayer": "Fatima Prayer",
-        "prayerFilename": "fatima_prayer.html"
+        "prayerFilename": "Prayer_FatimaPrayer.html"
     },
     {
         "prayer": "Hail Holy Queen",
-        "prayerFilename": "hail_holy_queen.html"
+        "prayerFilename": "Prayer_HailHolyQueen.html"
     }
 ]

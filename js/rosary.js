@@ -2,7 +2,14 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { smoothZoomToUuid, smoothZoom } from "/js/zooming";
-import { resetWidthHeight } from "/js/utilities";
+import {
+  resetWidthHeight,
+  readPrayerFile,
+  hideAllChildren,
+  readJsonFile,
+  playBeep,
+  sleepMilliseconds,
+} from "/js/utilities";
 import { oklch, formatHex } from "culori";
 import Color from "colorjs.io";
 import { createElement, createIcons, icons } from "lucide";
@@ -18,22 +25,19 @@ let beadRoughness = 0.5;
 let chainRoughness = 0;
 let chainRadius = 0.04;
 
-const oklchLx = 0.7; // Lightness (0 to 1)
-const oklchCx = 0.15; // Chroma
-const oklchHx = 240; // Hue (0 to 360)
+const oklchL = 0.8891;
+const oklchC = 0.1837;
+const oklchH = 161.77;
+const oklchColor = new Color("oklch", [oklchL, oklchC, oklchH]);
 
-// Create a Color object in Oklch space
-const oklchColor = new Color("oklch", [oklchLx, oklchCx, oklchHx]);
-// Convert to sRGB and then to a hex string
-const hexString = oklchColor.to("srgb").toString({ format: "hex" });
-console.log(hexString);
-
-let chainColor = "#606265";
+let baseChainColor = "#606265";
 let baseBeadColorLarge = "#39ffb4";
 let baseBeadColorSmall = "#f0f2f5";
+let baseCrossColor = "#a26f56";
 let baseBeadColorLargeOKLCH = new Color(baseBeadColorLarge).to("oklch");
 let baseBeadColorSmallOKLCH = new Color(baseBeadColorSmall).to("oklch");
-baseBeadColorSmallOKLCH.l = 0.9; // Adjusted lightness
+let baseCrossColorOKLCH = new Color(baseCrossColor).to("oklch");
+baseBeadColorSmallOKLCH.l = 0.9;
 
 let beadColorSmall = baseBeadColorSmallOKLCH
   .to("srgb")
@@ -47,7 +51,7 @@ let beadColorVeryLarge = baseBeadColorLargeOKLCH
 let beadColorCenter = baseBeadColorLargeOKLCH
   .to("srgb")
   .toString({ format: "hex" });
-let crossColor = "#a26f56";
+let crossColor = baseCrossColorOKLCH.to("srgb").toString({ format: "hex" });
 let activeColor = "#ff0000";
 let nextColor = "#E0FF21";
 
@@ -103,12 +107,14 @@ let prayers = "";
 const storageCurrentVersion = 1.2;
 
 window.onload = async function () {
-  // raycaster = new THREE.Raycaster();
-  // pointer = new THREE.Vector2();
-  // renderer = new THREE.WebGLRenderer({ canvas });
-
   screenInfo = resetWidthHeight();
-  // elementMessage.innerHTML = JSON.stringify(screen, null, 2);
+  elementMessage.innerHTML = "Hello, Rosary!";
+  let prayers = await readJsonFile("/json/prayers.json");
+  let prayerToFind = "Hail Mary";
+  let prayer = prayers.find((p) => p.prayer === prayerToFind);
+  elementMessage.innerHTML = await readPrayerFile(prayer.prayerFilename);
+  let prayerText = await readPrayerFile(prayer.prayerFilename);
+  await hideAllChildren(elementCanvasContainer);
 
   createIcons({ icons });
   createRosary();
@@ -492,6 +498,15 @@ async function setActiveBead(objectUuid) {
       (item) => item.uuid == objectUuid.uuid
     );
     let rosaryItem = rosaryItems[rosaryIndex];
+    if (rosaryItem.description == "OurFather") {
+      await playBeep();
+    }
+    if (rosaryItem.description == "HailHolyQueen") {
+      await playBeep();
+      await sleepMilliseconds(500);
+      await playBeep();
+    }
+
     rosaryItem.prayers.forEach((prayer) => {
       let buttonPrayer = document.createElement("div");
       buttonPrayer.classList.add("buttonPrayer");
@@ -803,7 +818,7 @@ function insertLoopTop(scene, radius, spacedPointsCount) {
 
   let curveMesh = new THREE.Mesh(
     tubeGeometry(bezierCurve, chainRadius),
-    curveMaterial(chainColor, chainRoughness)
+    curveMaterial(baseChainColor, chainRoughness)
   );
 
   scene.add(curveMesh);
@@ -843,7 +858,7 @@ function insertLoopBottom(scene, radius) {
 
   let curveMesh = new THREE.Mesh(
     tubeGeometry(bezierCurve, chainRadius),
-    curveMaterial(chainColor, chainRoughness)
+    curveMaterial(baseChainColor, chainRoughness)
   );
 
   scene.add(curveMesh);
@@ -911,7 +926,7 @@ function insertLine(scene, radius) {
     32
   );
   const material = new THREE.MeshStandardMaterial({
-    color: chainColor,
+    color: baseChainColor,
     roughness: chainRoughness,
   });
   const cylinder = new THREE.Mesh(geometry, material);
